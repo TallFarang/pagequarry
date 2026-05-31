@@ -2,7 +2,7 @@
 
 this directory is a visible archive of accepted markdown.
 
-it exists so writers and git can see the accepted source and revision history.
+it exists so writers, git, and deploys can use the accepted source and revision history.
 
 ## what is here
 
@@ -24,6 +24,7 @@ use this for:
 - copying the current accepted source before making an edit
 - browsing revision history in git
 - confirming what the pipeline last accepted
+- committing accepted content after `submit` or `edit`
 
 do not use this directory as the syntax reference for the system.
 
@@ -48,6 +49,7 @@ this is a generated mirror, not a staging area.
 
 - the site does not render directly from these markdown files
 - the site renders from hidden generated state in `content/.state/`
+- fresh deploys rebuild hidden generated state from committed archive revisions
 - direct edits here do not publish anything
 - if you edit files here directly, the pipeline will restore the accepted version and move your edit into `content/recovered-drafts/`
 - if a page slug changes, this archive moves with the new canonical url on the next rebuild
@@ -76,3 +78,5 @@ for new drafts, always use:
 - `content/submit-here/`
 
 not this directory.
+
+after `check` and `edit` pass, commit the changed files under this directory. do not commit `content/.state/` or `public/_redirects`; those are generated during audit/build.

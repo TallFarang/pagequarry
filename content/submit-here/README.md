@@ -147,7 +147,7 @@ Important:
 
 - `draft` revisions are accepted and archived, but do not replace the last published page on the live site
 - if a page has never had a published revision, `draft` keeps it off the live site entirely
-- accepted markdown appears in `content/archive/`
+- accepted markdown appears in `content/archive/` and should be committed after submit/edit
 - redirects are generated from `redirect_from` for published pages
 - if you expose the cli through agent tools, map them narrowly to `content_templates`, `content_blocks`, `content_stage`, `content_check`, `content_submit`, `content_edit`, `content_pages`, `content_recovery_list`, and `content_recovery_restore`
 - `content_stage` should stay the entry point because it writes drafts here without guessing paths
