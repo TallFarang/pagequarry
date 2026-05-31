@@ -90,7 +90,7 @@ export function HomepageMarkdownPanel({
               <span className="h-5 w-5 rounded-full bg-amber-300/90" />
               <span className="h-5 w-5 rounded-full bg-emerald-400/90" />
             </div>
-            <span className="font-mono text-[0.72rem] font-medium tracking-[0.06em] text-slate-400">
+            <span className="font-label text-[0.72rem] font-medium tracking-[0.06em] text-slate-400">
               content/archive/index/current.md
             </span>
           </div>
@@ -130,7 +130,7 @@ export function HomepageMarkdownShell({
       return;
     }
 
-    if (window.history.state?.pagequarryMarkdownOpen) {
+    if (window.history.state?.siteMarkdownOpen) {
       window.history.back();
       return;
     }
@@ -144,7 +144,7 @@ export function HomepageMarkdownShell({
     }
 
     window.history.pushState(
-      { ...(window.history.state ?? {}), pagequarryMarkdownOpen: true },
+      { ...(window.history.state ?? {}), siteMarkdownOpen: true },
       "",
       window.location.href
     );
@@ -153,7 +153,7 @@ export function HomepageMarkdownShell({
 
   useEffect(() => {
     const handlePopState = () => {
-      setIsOpen(Boolean(window.history.state?.pagequarryMarkdownOpen));
+      setIsOpen(Boolean(window.history.state?.siteMarkdownOpen));
     };
 
     window.addEventListener("popstate", handlePopState);

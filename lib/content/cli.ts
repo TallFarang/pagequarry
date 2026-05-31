@@ -22,6 +22,8 @@ type CliResult = {
   text: string;
 };
 
+const generatedSiteConfigMarker = "Generated framework fallback config";
+
 function stableJson(value: unknown) {
   return JSON.stringify(value, null, 2);
 }
@@ -54,6 +56,7 @@ function usageText() {
     "  check <file>             validate a draft without accepting it",
     "  submit <file>            validate and accept a draft",
     "  edit <file>              alias of submit, intended for revising an existing page",
+    "  site-init                 copy starter assets and seed generic starter pages",
     "  audit                    rebuild generated state and quarantine bad direct writes",
     "  pages                    list live published pages",
     "  recovery-list            list quarantined files",
@@ -281,6 +284,93 @@ function recoveryRestoreResult(id: string, context: CliContext) {
   );
 }
 
+function copyFileSafe({
+  from,
+  force,
+  rootDir,
+  to,
+}: {
+  force: boolean;
+  from: string;
+  rootDir: string;
+  to: string;
+}) {
+  const source = path.join(process.cwd(), from);
+  const target = path.join(rootDir, to);
+  if (!force && fs.existsSync(target)) {
+    const sourceContent = fs.readFileSync(source, "utf8");
+    const targetContent = fs.readFileSync(target, "utf8");
+    const canReplaceGeneratedFallback =
+      to === "site/config.ts" && targetContent.includes(generatedSiteConfigMarker);
+    if (sourceContent !== targetContent && !canReplaceGeneratedFallback) {
+      return fail(
+        {
+          ok: false,
+          message: `${to} already exists. rerun site-init with --force to replace it.`,
+        },
+        `${to} already exists. rerun site-init with --force to replace it.`
+      );
+    }
+  }
+
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  fs.copyFileSync(source, target);
+  return null;
+}
+
+function siteInitResult(args: string[], context: CliContext) {
+  const force = args.includes("--force");
+  const assetCopies = [
+    ["init/site/config.ts", "site/config.ts"],
+    ["init/site/block-overrides.tsx", "site/block-overrides.tsx"],
+    ["init/site/template-overrides.tsx", "site/template-overrides.tsx"],
+    ["init/public/site/icon.svg", "public/site/icon.svg"],
+    ["init/public/site/apple-icon.svg", "public/site/apple-icon.svg"],
+    ["init/public/og/site.svg", "public/og/site.svg"],
+    ["init/public/og/home.svg", "public/og/home.svg"],
+    ["init/public/og/page.svg", "public/og/page.svg"],
+  ] as const;
+
+  const copiedAssets: string[] = [];
+  for (const [from, to] of assetCopies) {
+    const blocked = copyFileSafe({ force, from, rootDir: context.rootDir, to });
+    if (blocked) return blocked;
+    copiedAssets.push(to);
+  }
+
+  const seedTemplateDir = path.join(process.cwd(), "init", "content", "examples", "seed");
+  const seedDir = path.join(context.rootDir, "content", "examples", "seed");
+  fs.mkdirSync(seedDir, { recursive: true });
+
+  for (const entry of fs.readdirSync(seedTemplateDir, { withFileTypes: true })) {
+    if (!entry.isFile() || !entry.name.endsWith(".md")) continue;
+    const blocked = copyFileSafe({
+      force,
+      from: path.join("init", "content", "examples", "seed", entry.name),
+      rootDir: context.rootDir,
+      to: path.join("content", "examples", "seed", entry.name),
+    });
+    if (blocked) return blocked;
+  }
+
+  const seeded = seedResult(seedDir, context);
+  if (seeded.exitCode !== 0) return seeded;
+
+  const payload = {
+    ...(seeded.payload as { accepted: unknown[]; ok: boolean; rejected: unknown[] }),
+    assets: copiedAssets,
+  };
+
+  return ok(
+    payload,
+    [
+      "site initialized",
+      ...copiedAssets.map((asset) => `asset: ${asset}`),
+      seeded.text ? `pages:\n${seeded.text}` : "pages: none",
+    ].join("\n")
+  );
+}
+
 function seedResult(dir: string, context: CliContext) {
   const absoluteDir = path.resolve(dir);
   const files = fs
@@ -333,6 +423,9 @@ export async function runContentCli(argv: string[]) {
       result = parsed.rest[0]
         ? submitResult(parsed.rest[0], context)
         : fail({ ok: false, error: `${parsed.command} requires <file>` }, `${parsed.command} requires <file>`);
+      break;
+    case "site-init":
+      result = siteInitResult(parsed.rest, context);
       break;
     case "audit":
       result = auditResult(context);

@@ -45,9 +45,11 @@ export function paramsFromSlug(slug: string) {
 }
 
 export function nonRootPageParams() {
-  return getLivePages()
+  const params = getLivePages()
     .filter((page) => page.slug !== "/")
     .map((page) => paramsFromSlug(page.slug));
+
+  return params.length ? params : [{ slug: ["__empty__"] }];
 }
 
 export function pageTitle(page: ManagedPage) {

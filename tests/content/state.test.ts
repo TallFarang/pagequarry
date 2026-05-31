@@ -17,12 +17,12 @@ import {
   archiveRevisionPath,
   resolveContentPaths,
 } from "@/lib/content/paths";
-import { createTempRoot, copyFixture, writeFile } from "@/tests/helpers/temp-root";
+import { createTempRoot, writeFile, writeGenericDraft } from "@/tests/helpers/temp-root";
 
 describe("content state pipeline", () => {
   it("accepts a valid submit, removes it from submit-here, and mirrors it into archive", () => {
     const rootDir = createTempRoot();
-    const filePath = copyFixture(rootDir, "home.md");
+    const filePath = writeGenericDraft(rootDir, "home");
 
     const result = submitDraftFile({ filePath, rootDir });
 
@@ -33,9 +33,9 @@ describe("content state pipeline", () => {
       expect(fs.existsSync(filePath)).toBe(false);
       expect(fs.existsSync(path.join(rootDir, result.archiveCurrentPath))).toBe(true);
       expect(fs.existsSync(path.join(rootDir, result.archiveRevisionPath))).toBe(true);
-      expect(fs.readFileSync(archiveCurrentPath(paths, "/"), "utf8")).toContain("title: PageQuarry");
+      expect(fs.readFileSync(archiveCurrentPath(paths, "/"), "utf8")).toContain("title: Test Site");
       expect(fs.readFileSync(archiveRevisionPath(paths, "/", result.page.revisionId), "utf8")).toContain(
-        "title: PageQuarry"
+        "title: Test Site"
       );
       expect(listPages(rootDir)).toHaveLength(1);
     }
@@ -59,12 +59,12 @@ describe("content state pipeline", () => {
 
   it("detects slug collisions during check", () => {
     const rootDir = createTempRoot();
-    submitDraftFile({ filePath: copyFixture(rootDir, "home.md"), rootDir });
-    const conflicting = copyFixture(rootDir, "features.md");
+    submitDraftFile({ filePath: writeGenericDraft(rootDir, "home"), rootDir });
+    const conflicting = writeGenericDraft(rootDir, "features");
 
     const source = fs
       .readFileSync(conflicting, "utf8")
-      .replace("slug: /features", "slug: /\npage_id: features");
+      .replace("slug: /features", "slug: /");
     fs.writeFileSync(conflicting, source, "utf8");
 
     const result = checkDraftFile({ filePath: conflicting, rootDir });
@@ -77,12 +77,12 @@ describe("content state pipeline", () => {
 
   it("detects slug collisions during submit", () => {
     const rootDir = createTempRoot();
-    submitDraftFile({ filePath: copyFixture(rootDir, "home.md"), rootDir });
-    const conflicting = copyFixture(rootDir, "features.md");
+    submitDraftFile({ filePath: writeGenericDraft(rootDir, "home"), rootDir });
+    const conflicting = writeGenericDraft(rootDir, "features");
 
     const source = fs
       .readFileSync(conflicting, "utf8")
-      .replace("slug: /features", "slug: /\npage_id: features");
+      .replace("slug: /features", "slug: /");
     fs.writeFileSync(conflicting, source, "utf8");
 
     const result = submitDraftFile({ filePath: conflicting, rootDir });
@@ -95,7 +95,7 @@ describe("content state pipeline", () => {
 
   it("keeps draft pages out of the live index while archiving them", () => {
     const rootDir = createTempRoot();
-    const filePath = copyFixture(rootDir, "contact.md");
+    const filePath = writeGenericDraft(rootDir, "contact");
     const source = fs
       .readFileSync(filePath, "utf8")
       .replace("title: contact", "status: draft\ntitle: contact");
@@ -113,12 +113,12 @@ describe("content state pipeline", () => {
 
   it("keeps the last published revision live when a newer draft revision is accepted", () => {
     const rootDir = createTempRoot();
-    submitDraftFile({ filePath: copyFixture(rootDir, "contact.md"), rootDir });
+    submitDraftFile({ filePath: writeGenericDraft(rootDir, "contact"), rootDir });
 
-    const draftEdit = copyFixture(rootDir, "contact.md", path.join("drafts", "contact-draft.md"));
+    const draftEdit = writeGenericDraft(rootDir, "contact", path.join("drafts", "contact-draft.md"));
     const draftSource = fs
       .readFileSync(draftEdit, "utf8")
-      .replace("title: contact", "page_id: contact\nstatus: draft\ntitle: contact draft");
+      .replace("title: contact", "status: draft\ntitle: contact draft");
     fs.writeFileSync(draftEdit, draftSource, "utf8");
 
     const result = submitDraftFile({ filePath: draftEdit, rootDir });
@@ -132,7 +132,7 @@ describe("content state pipeline", () => {
 
   it("rehydrates hidden state from the visible archive on a clean clone", () => {
     const rootDir = createTempRoot();
-    submitDraftFile({ filePath: copyFixture(rootDir, "contact.md"), rootDir });
+    submitDraftFile({ filePath: writeGenericDraft(rootDir, "contact"), rootDir });
     const paths = resolveContentPaths(rootDir);
 
     fs.rmSync(paths.stateDir, { force: true, recursive: true });
@@ -151,7 +151,7 @@ describe("content state pipeline", () => {
 
   it("does not report bootstrap when hidden state is already present", () => {
     const rootDir = createTempRoot();
-    submitDraftFile({ filePath: copyFixture(rootDir, "contact.md"), rootDir });
+    submitDraftFile({ filePath: writeGenericDraft(rootDir, "contact"), rootDir });
 
     const audit = rebuildContentState(rootDir);
 
@@ -160,12 +160,12 @@ describe("content state pipeline", () => {
 
   it("rehydrates published live state from archive revisions even when archive current is a draft", () => {
     const rootDir = createTempRoot();
-    submitDraftFile({ filePath: copyFixture(rootDir, "contact.md"), rootDir });
+    submitDraftFile({ filePath: writeGenericDraft(rootDir, "contact"), rootDir });
 
-    const draftEdit = copyFixture(rootDir, "contact.md", path.join("drafts", "contact-draft.md"));
+    const draftEdit = writeGenericDraft(rootDir, "contact", path.join("drafts", "contact-draft.md"));
     const draftSource = fs
       .readFileSync(draftEdit, "utf8")
-      .replace("title: contact", "page_id: contact\nstatus: draft\ntitle: contact draft");
+      .replace("title: contact", "status: draft\ntitle: contact draft");
     fs.writeFileSync(draftEdit, draftSource, "utf8");
     submitDraftFile({ filePath: draftEdit, rootDir });
 
@@ -184,11 +184,11 @@ describe("content state pipeline", () => {
 
   it("generates redirects for published aliases and rejects collisions", () => {
     const rootDir = createTempRoot();
-    const features = copyFixture(rootDir, "features.md");
+    const features = writeGenericDraft(rootDir, "features");
     const featuresSource = fs
       .readFileSync(features, "utf8")
-      .replace("description: feature overview for the PageQuarry starter site.", [
-        "description: feature overview for the PageQuarry starter site.",
+      .replace("description: generic feature overview.", [
+        "description: generic feature overview.",
         "redirect_from:",
         "  - /feature-overview",
       ].join("\n"));
@@ -199,11 +199,11 @@ describe("content state pipeline", () => {
     const redirectsPath = path.join(rootDir, "public", "_redirects");
     expect(fs.readFileSync(redirectsPath, "utf8")).toContain("/feature-overview /features 301");
 
-    const conflict = copyFixture(rootDir, "contact.md");
+    const conflict = writeGenericDraft(rootDir, "contact");
     const conflictSource = fs
       .readFileSync(conflict, "utf8")
-      .replace("description: safe placeholder contact page for the starter site.", [
-        "description: safe placeholder contact page for the starter site.",
+      .replace("description: generic contact page.", [
+        "description: generic contact page.",
         "redirect_from:",
         "  - /features",
       ].join("\n"));
@@ -220,12 +220,12 @@ describe("content state pipeline", () => {
 
   it("treats matching slug and page_id as an edit instead of a collision", () => {
     const rootDir = createTempRoot();
-    submitDraftFile({ filePath: copyFixture(rootDir, "home.md"), rootDir });
-    const editPath = copyFixture(rootDir, "home.md", path.join("drafts", "home-edit.md"));
+    submitDraftFile({ filePath: writeGenericDraft(rootDir, "home"), rootDir });
+    const editPath = writeGenericDraft(rootDir, "home", path.join("drafts", "home-edit.md"));
 
     const source = fs
       .readFileSync(editPath, "utf8")
-      .replace("title: PageQuarry", "title: PageQuarry revised");
+      .replace("title: Test Site", "title: Revised Test Site");
     fs.writeFileSync(editPath, source, "utf8");
 
     const result = checkDraftFile({ filePath: editPath, rootDir });
@@ -246,7 +246,7 @@ describe("content state pipeline", () => {
 
   it("leaves staged drafts in submit-here alone during audit", () => {
     const rootDir = createTempRoot();
-    const staged = copyFixture(rootDir, "contact.md");
+    const staged = writeGenericDraft(rootDir, "contact");
 
     const audit = rebuildContentState(rootDir);
 
@@ -282,13 +282,13 @@ describe("content state pipeline", () => {
 
   it("moves the visible archive when a page slug changes", () => {
     const rootDir = createTempRoot();
-    const first = submitDraftFile({ filePath: copyFixture(rootDir, "contact.md"), rootDir });
+    const first = submitDraftFile({ filePath: writeGenericDraft(rootDir, "contact"), rootDir });
     expect(first.ok).toBe(true);
 
-    const editPath = copyFixture(rootDir, "contact.md", path.join("drafts", "contact-renamed.md"));
+    const editPath = writeGenericDraft(rootDir, "contact", path.join("drafts", "contact-renamed.md"));
     const renamed = fs
       .readFileSync(editPath, "utf8")
-      .replace("slug: /contact", "slug: /reach-out\npage_id: contact")
+      .replace("slug: /contact", "slug: /reach-out")
       .replace("title: contact", "title: reach out");
     fs.writeFileSync(editPath, renamed, "utf8");
 
@@ -312,7 +312,7 @@ describe("content state pipeline", () => {
 
   it("restores a tampered revision source from the trusted revision json", () => {
     const rootDir = createTempRoot();
-    const submit = submitDraftFile({ filePath: copyFixture(rootDir, "features.md"), rootDir });
+    const submit = submitDraftFile({ filePath: writeGenericDraft(rootDir, "features"), rootDir });
     expect(submit.ok).toBe(true);
 
     const paths = resolveContentPaths(rootDir);
@@ -335,7 +335,7 @@ describe("content state pipeline", () => {
 
   it("quarantines a tampered current page state and rewrites it", () => {
     const rootDir = createTempRoot();
-    submitDraftFile({ filePath: copyFixture(rootDir, "features.md"), rootDir });
+    submitDraftFile({ filePath: writeGenericDraft(rootDir, "features"), rootDir });
     const paths = resolveContentPaths(rootDir);
     const pageId = listPages(rootDir)[0]!.pageId;
     const currentPath = path.join(paths.pagesDir, pageId, "current.json");
@@ -350,7 +350,7 @@ describe("content state pipeline", () => {
 
   it("quarantines a tampered live index and regenerates it", () => {
     const rootDir = createTempRoot();
-    submitDraftFile({ filePath: copyFixture(rootDir, "contact.md"), rootDir });
+    submitDraftFile({ filePath: writeGenericDraft(rootDir, "contact"), rootDir });
     const paths = resolveContentPaths(rootDir);
 
     fs.writeFileSync(paths.liveIndexPath, '{"bad":true}', "utf8");
@@ -363,7 +363,7 @@ describe("content state pipeline", () => {
 
   it("quarantines direct edits to archive files and restores the accepted version", () => {
     const rootDir = createTempRoot();
-    const submit = submitDraftFile({ filePath: copyFixture(rootDir, "contact.md"), rootDir });
+    const submit = submitDraftFile({ filePath: writeGenericDraft(rootDir, "contact"), rootDir });
     expect(submit.ok).toBe(true);
 
     const paths = resolveContentPaths(rootDir);
@@ -379,7 +379,7 @@ describe("content state pipeline", () => {
 
   it("quarantines unexpected files dropped into archive", () => {
     const rootDir = createTempRoot();
-    submitDraftFile({ filePath: copyFixture(rootDir, "contact.md"), rootDir });
+    submitDraftFile({ filePath: writeGenericDraft(rootDir, "contact"), rootDir });
     writeFile(rootDir, "content/archive/contact/random.md", "# stray archive file");
 
     const audit = rebuildContentState(rootDir);
@@ -392,7 +392,7 @@ describe("content state pipeline", () => {
 
   it("quarantines a broken revision json when the markdown source is missing", () => {
     const rootDir = createTempRoot();
-    submitDraftFile({ filePath: copyFixture(rootDir, "contact.md"), rootDir });
+    submitDraftFile({ filePath: writeGenericDraft(rootDir, "contact"), rootDir });
     const paths = resolveContentPaths(rootDir);
     const pageId = listPages(rootDir)[0]!.pageId;
     const revisionsDir = path.join(paths.pagesDir, pageId, "revisions");
@@ -410,7 +410,7 @@ describe("content state pipeline", () => {
 
   it("rebuilds a missing revision json from valid markdown in hidden state", () => {
     const rootDir = createTempRoot();
-    submitDraftFile({ filePath: copyFixture(rootDir, "contact.md"), rootDir });
+    submitDraftFile({ filePath: writeGenericDraft(rootDir, "contact"), rootDir });
     const paths = resolveContentPaths(rootDir);
     const pageId = listPages(rootDir)[0]!.pageId;
     const revisionsDir = path.join(paths.pagesDir, pageId, "revisions");
@@ -429,7 +429,7 @@ describe("content state pipeline", () => {
 
   it("quarantines an invalid hidden revision pair", () => {
     const rootDir = createTempRoot();
-    submitDraftFile({ filePath: copyFixture(rootDir, "contact.md"), rootDir });
+    submitDraftFile({ filePath: writeGenericDraft(rootDir, "contact"), rootDir });
     const paths = resolveContentPaths(rootDir);
     const pageId = listPages(rootDir)[0]!.pageId;
     const revisionsDir = path.join(paths.pagesDir, pageId, "revisions");
@@ -476,7 +476,7 @@ describe("content state pipeline", () => {
 
   it("keeps non-inbox drafts in place after submit", () => {
     const rootDir = createTempRoot();
-    const filePath = copyFixture(rootDir, "contact.md", path.join("drafts", "contact.md"));
+    const filePath = writeGenericDraft(rootDir, "contact", path.join("drafts", "contact.md"));
 
     const result = submitDraftFile({ filePath, rootDir });
 
@@ -497,8 +497,8 @@ describe("content state pipeline", () => {
 
   it("uses the newest accepted revision timestamp for the live index", () => {
     const rootDir = createTempRoot();
-    submitDraftFile({ filePath: copyFixture(rootDir, "features.md"), rootDir });
-    submitDraftFile({ filePath: copyFixture(rootDir, "contact.md"), rootDir });
+    submitDraftFile({ filePath: writeGenericDraft(rootDir, "features"), rootDir });
+    submitDraftFile({ filePath: writeGenericDraft(rootDir, "contact"), rootDir });
     const paths = resolveContentPaths(rootDir);
 
     const audit = rebuildContentState(rootDir);

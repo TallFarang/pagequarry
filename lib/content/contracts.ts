@@ -14,8 +14,21 @@ const actionLinkSchema = z.object({
   label: z.string().min(1),
 });
 
+const mediaImagePositionSchema = z.enum(["top", "left", "right", "background"]);
+const supportingImagePositionSchema = z.enum(["top", "left", "right"]);
+const heroImageModeSchema = z.enum(["inline", "background"]);
+const imageOverlaySchema = z.enum(["none", "soft", "strong"]);
+const embedProviderSchema = z.enum(["youtube", "googleCalendar", "googleMaps"]);
+const embedAspectSchema = z.enum(["wide", "standard", "square", "tall"]);
+
 const linkItemSchema: z.ZodType<LinkItem> = actionLinkSchema.extend({
   summary: z.string().min(1).optional(),
+});
+
+const mediaAssetSchema = z.object({
+  src: z.string().min(1),
+  alt: z.string().min(1).optional(),
+  caption: z.string().min(1).optional(),
 });
 
 const heroSchema = z.object({
@@ -25,6 +38,25 @@ const heroSchema = z.object({
   deck: z.string().min(1),
   aside: z.string().min(1).optional(),
   action: actionLinkSchema.optional(),
+  image: mediaAssetSchema.optional(),
+  imageMode: heroImageModeSchema.optional(),
+  imageOverlay: imageOverlaySchema.optional(),
+}).superRefine((value, context) => {
+  if (!value.image && value.imageMode) {
+    context.addIssue({
+      code: "custom",
+      message: "imageMode requires imageSrc.",
+      path: ["imageMode"],
+    });
+  }
+
+  if (!value.image && value.imageOverlay) {
+    context.addIssue({
+      code: "custom",
+      message: "imageOverlay requires imageSrc.",
+      path: ["imageOverlay"],
+    });
+  }
 });
 
 const sectionCopySchema = z.object({
@@ -34,7 +66,94 @@ const sectionCopySchema = z.object({
   body: z.string().min(1),
   bullets: z.array(z.string().min(1)).optional(),
   links: z.array(linkItemSchema).optional(),
+  image: mediaAssetSchema.optional(),
+  imagePosition: supportingImagePositionSchema.optional(),
   tone: z.enum(["default", "subtle"]).optional(),
+}).superRefine((value, context) => {
+  if (!value.image && value.imagePosition) {
+    context.addIssue({
+      code: "custom",
+      message: "imagePosition requires imageSrc.",
+      path: ["imagePosition"],
+    });
+  }
+});
+
+const mediaCardSchema = z.object({
+  type: z.literal("mediaCard"),
+  title: z.string().min(1),
+  body: z.string().min(1),
+  image: mediaAssetSchema,
+  imagePosition: mediaImagePositionSchema.optional(),
+  action: actionLinkSchema.optional(),
+});
+
+const mediaGridSchema = z.object({
+  type: z.literal("mediaGrid"),
+  items: z.array(mediaCardSchema.omit({ type: true })).min(1),
+});
+
+const embedSchema = z.object({
+  type: z.literal("embed"),
+  title: z.string().min(1),
+  provider: embedProviderSchema,
+  src: z.string().min(1),
+  aspect: embedAspectSchema.optional(),
+  caption: z.string().min(1).optional(),
+}).superRefine((value, context) => {
+  let parsed: URL;
+
+  try {
+    parsed = new URL(value.src);
+  } catch {
+    context.addIssue({
+      code: "custom",
+      message: "must be an absolute https url.",
+      path: ["src"],
+    });
+    return;
+  }
+
+  if (parsed.protocol !== "https:") {
+    context.addIssue({
+      code: "custom",
+      message: "must be an https url.",
+      path: ["src"],
+    });
+    return;
+  }
+
+  const rules = {
+    googleCalendar: {
+      message:
+        "googleCalendar embeds must use https://calendar.google.com/calendar/embed.",
+      valid:
+        parsed.hostname === "calendar.google.com" &&
+        parsed.pathname.startsWith("/calendar/embed"),
+    },
+    googleMaps: {
+      message: "googleMaps embeds must use https://www.google.com/maps/embed.",
+      valid:
+        parsed.hostname === "www.google.com" &&
+        parsed.pathname.startsWith("/maps/embed"),
+    },
+    youtube: {
+      message: "youtube embeds must use https://www.youtube.com/embed/<video-id>.",
+      valid:
+        parsed.hostname === "www.youtube.com" &&
+        parsed.pathname.startsWith("/embed/") &&
+        parsed.pathname.split("/").filter(Boolean).length >= 2,
+    },
+  } as const;
+
+  const rule = rules[value.provider];
+  if (!rule.valid) {
+    context.addIssue({
+      code: "custom",
+      message: rule.message,
+      path: ["src"],
+    });
+  }
 });
 
 const metricsSchema = z.object({
@@ -79,7 +198,17 @@ const ctaSchema = z.object({
 
 export const contentBlockSchema: z.ZodType<ContentBlock> = z.discriminatedUnion(
   "type",
-  [heroSchema, sectionCopySchema, metricsSchema, processSchema, quoteSchema, ctaSchema]
+  [
+    heroSchema,
+    sectionCopySchema,
+    embedSchema,
+    mediaCardSchema,
+    mediaGridSchema,
+    metricsSchema,
+    processSchema,
+    quoteSchema,
+    ctaSchema,
+  ]
 );
 
 export const templateKeys = [
@@ -209,23 +338,23 @@ export const managedPageSchema: z.ZodType<ManagedPage> = z.object({
 
 export const templateRules: Record<PageTemplateKey, TemplateRule> = {
   caseStudy: {
-    description: "hero, metrics, one or more sectionCopy blocks, then a cta",
+    description: "hero, metrics, one or more sectionCopy blocks, optional media blocks, then a cta",
     steps: ["hero", "metrics", "sectionCopy+", "cta"],
   },
   guide: {
-    description: "hero, one or more sectionCopy blocks, then a cta",
+    description: "hero, one or more sectionCopy blocks, optional media blocks, then a cta",
     steps: ["hero", "sectionCopy+", "cta"],
   },
   home: {
-    description: "hero, metrics, one or more sectionCopy blocks, process, quote, cta",
+    description: "hero, metrics, one or more sectionCopy blocks, optional media blocks, process, quote, cta",
     steps: ["hero", "metrics", "sectionCopy+", "process", "quote", "cta"],
   },
   hub: {
-    description: "hero, one or more sectionCopy blocks, then a cta",
+    description: "hero, one or more sectionCopy blocks, optional media blocks, then a cta",
     steps: ["hero", "sectionCopy+", "cta"],
   },
   narrative: {
-    description: "hero, one or more sectionCopy blocks, optional process, then a cta",
+    description: "hero, one or more sectionCopy blocks, optional media blocks, optional process, then a cta",
     steps: ["hero", "sectionCopy+", "process?", "cta"],
   },
 };
@@ -264,10 +393,25 @@ export const blockDocs = {
     syntax:
       "{% cta title=\"review the publishing flow\" body=\"...\" actionHref=\"/contact\" actionLabel=\"contact\" /%}",
   },
-  hero: {
-    description: "lead hero with optional aside and action button",
+  embed: {
+    description: "safe iframe embed from an approved provider",
     syntax:
-      "{% hero eyebrow=\"markdown-first publishing\" title=\"the editing path should stay obvious\" deck=\"...\" aside=\"...\" actionHref=\"/contact\" actionLabel=\"contact\" /%}",
+      "{% embed title=\"Example video\" provider=\"youtube\" src=\"https://www.youtube.com/embed/dQw4w9WgXcQ\" aspect=\"wide\" caption=\"An example video embed.\" /%}",
+  },
+  hero: {
+    description: "lead hero with optional aside, action button, and image treatment",
+    syntax:
+      "{% hero eyebrow=\"markdown-first publishing\" title=\"the editing path should stay obvious\" deck=\"...\" imageSrc=\"/images/hero.jpg\" imageAlt=\"descriptive alt text\" imageMode=\"background\" imageOverlay=\"soft\" aside=\"...\" actionHref=\"/contact\" actionLabel=\"contact\" /%}",
+  },
+  mediaCard: {
+    description: "image-backed card with title, body, optional action, and configurable image position",
+    syntax:
+      "{% mediaCard title=\"Dive boat trips\" body=\"Small-group days on the reef.\" imageSrc=\"/images/dive-boat.jpg\" imageAlt=\"Divers boarding a boat\" imagePosition=\"top\" actionHref=\"/trips\" actionLabel=\"View trips\" /%}",
+  },
+  mediaGrid: {
+    description: "grid of mediaCard child tags for image-backed card collections",
+    syntax:
+      "{% mediaGrid %}\\n{% mediaCard title=\"Training dives\" body=\"Skill-building days.\" imageSrc=\"/images/training.jpg\" imageAlt=\"Instructor with divers\" /%}\\n{% /mediaGrid %}",
   },
   metrics: {
     description: "row of label/value metrics built from metric child tags",
@@ -284,9 +428,9 @@ export const blockDocs = {
       "{% quote quote=\"the safest publishing system is the one that makes the right path obvious.\" attribution=\"project principle\" context=\"used throughout the starter content\" /%}",
   },
   sectionCopy: {
-    description: "editorial text section with markdown paragraphs, optional bullets, and optional linkItem tags",
+    description: "editorial text section with markdown paragraphs, optional bullets, optional supporting image, and optional linkItem tags",
     syntax:
-      "{% sectionCopy eyebrow=\"guide\" title=\"what it is\" tone=\"subtle\" %}\\nbody paragraph\\n\\n- bullet one\\n- bullet two\\n\\n{% linkItem href=\"/features\" label=\"features\" summary=\"see the broader site framework\" /%}\\n{% /sectionCopy %}",
+      "{% sectionCopy eyebrow=\"guide\" title=\"what it is\" tone=\"subtle\" imageSrc=\"/images/detail.jpg\" imageAlt=\"descriptive alt text\" imagePosition=\"right\" %}\\nbody paragraph\\n\\n- bullet one\\n- bullet two\\n\\n{% linkItem href=\"/features\" label=\"features\" summary=\"see the broader site framework\" /%}\\n{% /sectionCopy %}",
   },
 } as const;
 

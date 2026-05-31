@@ -4,30 +4,31 @@ import type {
   SocialImageVariant,
   TwitterCardType,
 } from "@/content/types";
+import type { SiteThemeSelection } from "@/site/themes";
 
 export const socialImageVariants = {
   caseStudy: {
-    alt: "PageQuarry case study social card",
-    path: "/og/case-study.svg",
+    alt: "Case study social card",
+    path: "/og/page.svg",
   },
   guide: {
-    alt: "PageQuarry guide social card",
-    path: "/og/guide.svg",
+    alt: "Guide social card",
+    path: "/og/page.svg",
   },
   home: {
-    alt: "PageQuarry home social card",
+    alt: "Home page social card",
     path: "/og/home.svg",
   },
   hub: {
-    alt: "PageQuarry feature hub social card",
-    path: "/og/hub.svg",
+    alt: "Hub page social card",
+    path: "/og/page.svg",
   },
   narrative: {
-    alt: "PageQuarry narrative page social card",
-    path: "/og/narrative.svg",
+    alt: "Narrative page social card",
+    path: "/og/page.svg",
   },
   site: {
-    alt: "PageQuarry site social card",
+    alt: "Site social card",
     path: "/og/site.svg",
   },
 } as const satisfies Record<SocialImageVariant, { alt: string; path: string }>;
@@ -74,53 +75,66 @@ export const templateMetadataDefaults = {
 >;
 
 const primaryAction = {
-  href: "https://github.com/juan-deere-4000/pagequarry",
-  label: "View on GitHub",
+  href: "/contact",
+  label: "Contact",
 } as const satisfies ActionLink;
 
 const navigation = [
   { href: "/features", label: "Features" },
-  { href: "/how-it-works", label: "How It Works" },
-  { href: "/howto", label: "Guides" },
-  { href: "/case-studies", label: "Examples" },
+  { href: "/contact", label: "Contact" },
 ] as const satisfies readonly ActionLink[];
 
 export const siteConfig = {
+  theme: {
+    name: "editorial",
+  } satisfies SiteThemeSelection,
   contact: {
-    email: "hello@pagequarry.com",
-    location: "Bangkok",
+    email: "hello@example.com",
+    location: "Online",
     primaryAction,
   },
   footer: {
-    meta: "Clone the repo, define the presentation in React, and publish pages through structured markdown blocks.",
-    note: "Templates, navigation, SEO defaults, and validation stay in code while humans and AI agents write inside the same publishing system.",
-    tagline: "Repo-native publishing for React sites.",
+    meta: "Configure the site identity, replace the starter content, and publish pages through structured markdown blocks.",
+    note: "Templates, navigation, SEO defaults, and validation stay in code while content is published through the same pipeline.",
+    tagline: "Structured publishing for React sites.",
   },
   identity: {
     description:
-      "An open-source React framework with a block-based markdown CMS for teams using humans and AI agents to publish without giving up the design system.",
+      "A structured website starter with reusable React templates and a validated markdown publishing workflow.",
     locale: "en_US",
-    name: "PageQuarry",
+    name: "Site Name",
     navigation,
-    shortName: "PageQuarry",
-    siteUrl: "https://pagequarry.com",
-    subheader: "A Modern Block-Based CMS for AI Agents and their Humans",
-    title: "PageQuarry",
+    shortName: "Site",
+    siteUrl: "https://example.com",
+    subheader: "A structured website starter",
+    title: "Site Name",
   },
   manifest: {
     backgroundColor: "#f7f0e8",
     description:
-      "Repo-native publishing for React sites.",
-    name: "PageQuarry",
-    shortName: "PageQuarry",
+      "Structured publishing for React sites.",
+    icons: {
+      apple: {
+        sizes: "180x180",
+        src: "/site/apple-icon.svg",
+        type: "image/svg+xml",
+      },
+      icon: {
+        sizes: "any",
+        src: "/site/icon.svg",
+        type: "image/svg+xml",
+      },
+    },
+    name: "Site Name",
+    shortName: "Site",
     themeColor: "#f7f0e8",
   },
   metadata: {
-    defaultAuthor: "PageQuarry",
+    defaultAuthor: "Example Team",
     organization: {
-      logo: "/icon.svg",
-      name: "PageQuarry",
-      sameAs: ["https://github.com/juan-deere-4000/pagequarry"] as string[],
+      logo: "/site/icon.svg",
+      name: "Site Name",
+      sameAs: [] as string[],
     },
     robots: {
       follow: true,
@@ -130,6 +144,6 @@ export const siteConfig = {
   social: {
     defaultTwitterCard: "summary_large_image" as const,
     images: socialImageVariants,
-    siteName: "PageQuarry",
+    siteName: "Site Name",
   },
 } as const;

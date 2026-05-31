@@ -31,6 +31,37 @@ function sectionCopy(): ContentBlock {
   };
 }
 
+function mediaCard(): ContentBlock {
+  return {
+    type: "mediaCard",
+    title: "card",
+    body: "body",
+    image: { src: "/images/card.jpg", alt: "card image" },
+  };
+}
+
+function mediaGrid(): ContentBlock {
+  return {
+    type: "mediaGrid",
+    items: [
+      {
+        title: "card",
+        body: "body",
+        image: { src: "/images/card.jpg", alt: "card image" },
+      },
+    ],
+  };
+}
+
+function embed(): ContentBlock {
+  return {
+    type: "embed",
+    title: "video",
+    provider: "youtube",
+    src: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+  };
+}
+
 function processBlock(): ContentBlock {
   return {
     type: "process",
@@ -64,8 +95,8 @@ describe("content contracts", () => {
 
     expect(home.steps).toEqual(["hero", "metrics", "sectionCopy+", "process", "quote", "cta"]);
     expect(slugToPageId("/")).toBe("home");
-    expect(slugToPageId("/case-studies/teams/community-knowledge-base")).toBe(
-      "case-studies-teams-community-knowledge-base"
+    expect(slugToPageId("/docs/teams/example-project")).toBe(
+      "docs-teams-example-project"
     );
   });
 
@@ -138,11 +169,11 @@ describe("content contracts", () => {
 
   it("accepts valid block sequences for every template family", () => {
     expect(
-      validateTemplateSequence("home", [hero(), metrics(), sectionCopy(), processBlock(), quote(), cta()])
+      validateTemplateSequence("home", [hero(), metrics(), sectionCopy(), mediaGrid(), embed(), processBlock(), quote(), cta()])
     ).toEqual([]);
-    expect(validateTemplateSequence("hub", [hero(), sectionCopy(), cta()])).toEqual([]);
-    expect(validateTemplateSequence("guide", [hero(), sectionCopy(), cta()])).toEqual([]);
-    expect(validateTemplateSequence("caseStudy", [hero(), metrics(), sectionCopy(), cta()])).toEqual([]);
-    expect(validateTemplateSequence("narrative", [hero(), sectionCopy(), processBlock(), cta()])).toEqual([]);
+    expect(validateTemplateSequence("hub", [hero(), mediaCard(), sectionCopy(), embed(), cta()])).toEqual([]);
+    expect(validateTemplateSequence("guide", [hero(), sectionCopy(), mediaGrid(), embed(), cta()])).toEqual([]);
+    expect(validateTemplateSequence("caseStudy", [hero(), metrics(), mediaCard(), embed(), sectionCopy(), cta()])).toEqual([]);
+    expect(validateTemplateSequence("narrative", [hero(), sectionCopy(), mediaCard(), embed(), processBlock(), cta()])).toEqual([]);
   });
 });

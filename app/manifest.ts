@@ -11,9 +11,14 @@ export default function manifest(): MetadataRoute.Manifest {
     display: "standalone",
     icons: [
       {
-        sizes: "64x64",
-        src: "/icon.svg",
-        type: "image/svg+xml",
+        sizes: siteConfig.manifest.icons.icon.sizes,
+        src: siteConfig.manifest.icons.icon.src,
+        type: siteConfig.manifest.icons.icon.type,
+      },
+      {
+        sizes: siteConfig.manifest.icons.apple.sizes,
+        src: siteConfig.manifest.icons.apple.src,
+        type: siteConfig.manifest.icons.apple.type,
       },
     ],
     name: siteConfig.manifest.name,

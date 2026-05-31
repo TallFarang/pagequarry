@@ -1,30 +1,57 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, Manrope, Space_Grotesk } from "next/font/google";
+import {
+  IBM_Plex_Mono,
+  Libre_Baskerville,
+  Manrope,
+  Public_Sans,
+  Source_Serif_4,
+  Space_Grotesk,
+} from "next/font/google";
 
 import { StructuredData } from "@/components/site/structured-data";
 import { SiteChrome } from "@/components/site/site-chrome";
 import { buildSiteStructuredData } from "@/lib/content/metadata";
 import { siteConfig } from "@/site/config";
+import { activeSiteTheme } from "@/site/theme-runtime";
 
 import "./globals.css";
 
 const bodyFont = Manrope({
   display: "swap",
   subsets: ["latin"],
-  variable: "--font-pagequarry-body",
+  variable: "--font-site-skeleton-body",
 });
 
 const displayFont = Space_Grotesk({
   display: "swap",
   subsets: ["latin"],
-  variable: "--font-pagequarry-display",
+  variable: "--font-site-skeleton-display",
 });
 
 const utilityFont = IBM_Plex_Mono({
   display: "swap",
   subsets: ["latin"],
-  variable: "--font-pagequarry-utility",
+  variable: "--font-site-skeleton-utility",
   weight: ["400", "500", "600"],
+});
+
+const editorialSerifFont = Source_Serif_4({
+  display: "swap",
+  subsets: ["latin"],
+  variable: "--font-site-skeleton-editorial-serif",
+});
+
+const editorialBodyFont = Libre_Baskerville({
+  display: "swap",
+  subsets: ["latin"],
+  variable: "--font-site-skeleton-editorial-body",
+  weight: ["400", "700"],
+});
+
+const studioFont = Public_Sans({
+  display: "swap",
+  subsets: ["latin"],
+  variable: "--font-site-skeleton-studio",
 });
 
 export const metadata: Metadata = {
@@ -32,8 +59,9 @@ export const metadata: Metadata = {
   authors: [{ name: siteConfig.metadata.defaultAuthor }],
   description: siteConfig.identity.description,
   icons: {
-    icon: "/icon.svg",
-    shortcut: "/icon.svg",
+    apple: siteConfig.manifest.icons.apple.src,
+    icon: siteConfig.manifest.icons.icon.src,
+    shortcut: siteConfig.manifest.icons.icon.src,
   },
   manifest: "/manifest.webmanifest",
   metadataBase: new URL(siteConfig.identity.siteUrl),
@@ -66,12 +94,13 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      className={`${bodyFont.variable} ${displayFont.variable} ${utilityFont.variable}`}
+      className={`${bodyFont.variable} ${displayFont.variable} ${utilityFont.variable} ${editorialSerifFont.variable} ${editorialBodyFont.variable} ${studioFont.variable}`}
+      data-theme={activeSiteTheme.name}
       lang="en"
     >
-      <body className="m-0 min-h-screen bg-[radial-gradient(circle_at_12%_12%,rgba(28,109,255,0.14),transparent_20%),radial-gradient(circle_at_88%_10%,rgba(0,188,212,0.12),transparent_18%),linear-gradient(180deg,#edf4f9_0%,#f8fbfd_44%,#eef3f8_100%)] font-sans text-foreground antialiased">
+      <body className="m-0 min-h-screen font-sans text-foreground antialiased">
         <StructuredData items={buildSiteStructuredData()} />
-        <div className="relative isolate min-h-screen overflow-hidden before:pointer-events-none before:fixed before:inset-0 before:-z-20 before:bg-[linear-gradient(rgba(16,32,48,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(16,32,48,0.035)_1px,transparent_1px)] before:bg-[size:36px_36px] before:opacity-40 before:[mask-image:linear-gradient(to_bottom,rgba(0,0,0,0.75),transparent_88%)] after:pointer-events-none after:fixed after:inset-0 after:-z-10 after:bg-[radial-gradient(circle_at_50%_-12%,rgba(255,255,255,0.9),transparent_38%),radial-gradient(circle_at_78%_18%,rgba(28,109,255,0.12),transparent_18%)]">
+        <div className="site-atmosphere relative isolate min-h-screen overflow-hidden">
           <div className="relative flex min-h-screen flex-col">
             <SiteChrome>{children}</SiteChrome>
           </div>

@@ -1,14 +1,13 @@
-import fs from "node:fs";
 import crypto from "node:crypto";
 
 import { describe, expect, it } from "vitest";
 
 import { parseDraftSource } from "@/lib/content/markdown";
-import { fixturePath } from "@/tests/helpers/temp-root";
+import { genericDrafts } from "@/tests/helpers/temp-root";
 
 describe("parseDraftSource", () => {
   it("accepts a valid home fixture", () => {
-    const source = fs.readFileSync(fixturePath("home.md"), "utf8");
+    const source = genericDrafts.home;
     const result = parseDraftSource({
       revisionId: "rev-home",
       source,
@@ -24,8 +23,6 @@ describe("parseDraftSource", () => {
         "hero",
         "metrics",
         "sectionCopy",
-        "sectionCopy",
-        "sectionCopy",
         "process",
         "quote",
         "cta",
@@ -37,24 +34,24 @@ describe("parseDraftSource", () => {
     const source = [
       "---",
       "template: guide",
-      "slug: /howto/editorial/publishing-workflow",
-      "page_id: howto-editorial-publishing-workflow",
+      "slug: /docs/publishing",
+      "page_id: docs-publishing",
       "status: published",
       "title: publishing workflow",
       "description: how to validate and publish a page safely through the content pipeline",
       "summary: stage drafts, lint them, and accept them without touching generated runtime files",
-      "seo_title: publishing workflow for a markdown-first site",
-      "canonical_url: /howto/editorial/publishing-workflow",
+      "seo_title: publishing workflow for a structured site",
+      "canonical_url: /docs/publishing",
       "robots: noindex",
       "social_title: publishing workflow",
       "social_description: stage drafts, lint them, and accept them without touching generated runtime files",
       "social_image: guide",
       "twitter_card: summary_large_image",
-      "author: PageQuarry",
+      "author: Example Team",
       "published_at: 2026-04-13T00:00:00Z",
       "updated_at: 2026-04-14T00:00:00Z",
       "redirect_from:",
-      "  - /guides/publishing-workflow",
+      "  - /guides/publishing",
       "---",
       "",
       '{% hero eyebrow="example guide" title="publishing workflow" deck="..." actionHref="/contact" actionLabel="contact" /%}',
@@ -75,19 +72,240 @@ describe("parseDraftSource", () => {
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.page.status).toBe("published");
-      expect(result.page.redirectFrom).toEqual(["/guides/publishing-workflow"]);
+      expect(result.page.redirectFrom).toEqual(["/guides/publishing"]);
       expect(result.page.meta.summary).toBe("stage drafts, lint them, and accept them without touching generated runtime files");
       expect(result.page.meta.seoTitle).toBe(
-        "publishing workflow for a markdown-first site"
+        "publishing workflow for a structured site"
       );
-      expect(result.page.meta.canonicalUrl).toContain("/howto/editorial/publishing-workflow");
+      expect(result.page.meta.canonicalUrl).toContain("/docs/publishing");
       expect(result.page.meta.robots).toEqual({ follow: true, index: false });
       expect(result.page.meta.social.title).toBe("publishing workflow");
       expect(result.page.meta.social.imageVariant).toBe("guide");
       expect(result.page.meta.social.twitterCard).toBe("summary_large_image");
-      expect(result.page.meta.author).toBe("PageQuarry");
+      expect(result.page.meta.author).toBe("Example Team");
       expect(result.page.meta.publishedAt).toBe("2026-04-13T00:00:00Z");
       expect(result.page.meta.updatedAt).toBe("2026-04-14T00:00:00Z");
+    }
+  });
+
+  it("parses hero image attributes and a supporting section image", () => {
+    const source = [
+      "---",
+      "template: guide",
+      "slug: /reef",
+      "title: reef guide",
+      "description: how to prepare for a reef trip",
+      "---",
+      "",
+      '{% hero eyebrow="reef" title="Dive the reef" deck="Small-group reef trips." imageSrc="/images/reef.jpg" imageAlt="Divers above a reef" imageCaption="Morning conditions on the outer reef" imageMode="background" imageOverlay="soft" actionHref="/contact" actionLabel="Book" /%}',
+      "",
+      '{% sectionCopy eyebrow="prepare" title="What to bring" imageSrc="/images/kit.jpg" imageAlt="Dive kit on a bench" imageCaption="Pack light and check your gear" imagePosition="right" %}',
+      "Bring the basics and keep the deck clear.",
+      "{% /sectionCopy %}",
+      "",
+      '{% cta title="Ready?" body="Talk to the team." actionHref="/contact" actionLabel="Contact" /%}',
+    ].join("\n");
+
+    const result = parseDraftSource({
+      revisionId: "rev-media-attrs",
+      source,
+      sourceHash: crypto.createHash("sha256").update(source).digest("hex"),
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.page.blocks[0]).toMatchObject({
+        image: {
+          alt: "Divers above a reef",
+          caption: "Morning conditions on the outer reef",
+          src: "/images/reef.jpg",
+        },
+        imageMode: "background",
+        imageOverlay: "soft",
+        type: "hero",
+      });
+      expect(result.page.blocks[1]).toMatchObject({
+        image: {
+          alt: "Dive kit on a bench",
+          caption: "Pack light and check your gear",
+          src: "/images/kit.jpg",
+        },
+        imagePosition: "right",
+        type: "sectionCopy",
+      });
+    }
+  });
+
+  it("parses standalone media cards and media grids", () => {
+    const source = [
+      "---",
+      "template: guide",
+      "slug: /trips",
+      "title: trip guide",
+      "description: pick the right trip",
+      "---",
+      "",
+      '{% hero eyebrow="trips" title="Choose a trip" deck="Find the right day on the water." /%}',
+      "",
+      '{% mediaCard title="Dive boat trips" body="Small-group days on the reef." imageSrc="/images/dive-boat.jpg" imageAlt="Divers boarding a boat" imagePosition="left" actionHref="/trips/boat" actionLabel="View trips" /%}',
+      "",
+      "{% mediaGrid %}",
+      '{% mediaCard title="Training dives" body="Skill-building days." imageSrc="/images/training.jpg" imageAlt="Instructor with divers" imagePosition="top" /%}',
+      '{% mediaCard title="Whale shark season" body="A seasonal highlight." imageSrc="/images/whale-shark.jpg" imageAlt="Divers near a whale shark" imagePosition="background" imageCaption="Conditions vary by season" /%}',
+      "{% /mediaGrid %}",
+      "",
+      '{% sectionCopy title="Details" %}',
+      "Pick the trip that fits your certification and comfort.",
+      "{% /sectionCopy %}",
+      "",
+      '{% cta title="Ready?" body="Talk to the team." actionHref="/contact" actionLabel="Contact" /%}',
+    ].join("\n");
+
+    const result = parseDraftSource({
+      revisionId: "rev-media-blocks",
+      source,
+      sourceHash: crypto.createHash("sha256").update(source).digest("hex"),
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.page.blocks.map((block) => block.type)).toEqual([
+        "hero",
+        "mediaCard",
+        "mediaGrid",
+        "sectionCopy",
+        "cta",
+      ]);
+      expect(result.page.blocks[1]).toMatchObject({
+        action: { href: "/trips/boat", label: "View trips" },
+        image: { alt: "Divers boarding a boat", src: "/images/dive-boat.jpg" },
+        imagePosition: "left",
+        type: "mediaCard",
+      });
+      expect(result.page.blocks[2]).toMatchObject({
+        items: [
+          { image: { src: "/images/training.jpg" }, title: "Training dives" },
+          {
+            image: {
+              caption: "Conditions vary by season",
+              src: "/images/whale-shark.jpg",
+            },
+            imagePosition: "background",
+            title: "Whale shark season",
+          },
+        ],
+        type: "mediaGrid",
+      });
+    }
+  });
+
+  it("rejects invalid media options and mediaGrid children", () => {
+    const source = [
+      "---",
+      "template: guide",
+      "slug: /bad-media",
+      "title: bad media",
+      "description: invalid media should fail",
+      "---",
+      "",
+      '{% hero eyebrow="bad" title="Bad media" deck="..." imageSrc="/images/hero.jpg" imageMode="poster" /%}',
+      "",
+      "{% mediaGrid %}",
+      '{% linkItem href="/x" label="not a media card" /%}',
+      "{% /mediaGrid %}",
+      "",
+      '{% sectionCopy title="Body" imageSrc="/images/body.jpg" imagePosition="background" %}',
+      "body",
+      "{% /sectionCopy %}",
+      "",
+      '{% cta title="Ready?" body="Talk to the team." actionHref="/contact" actionLabel="Contact" /%}',
+    ].join("\n");
+
+    const result = parseDraftSource({
+      revisionId: "rev-bad-media",
+      source,
+      sourceHash: crypto.createHash("sha256").update(source).digest("hex"),
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.issues.some((issue) => issue.message.includes("imageMode"))).toBe(true);
+      expect(result.issues.some((issue) => issue.message.includes("mediaGrid may only contain mediaCard"))).toBe(true);
+      expect(result.issues.some((issue) => issue.message.includes("sectionCopy imagePosition"))).toBe(true);
+    }
+  });
+
+  it("parses and normalizes YouTube embeds from share urls", () => {
+    const source = [
+      "---",
+      "template: guide",
+      "slug: /video",
+      "title: video guide",
+      "description: a page with a video embed",
+      "---",
+      "",
+      '{% hero eyebrow="video" title="Watch the briefing" deck="A neutral video page." /%}',
+      "",
+      '{% sectionCopy title="Before you go" %}',
+      "Watch the briefing before the next step.",
+      "{% /sectionCopy %}",
+      "",
+      '{% embed title="Example video" provider="youtube" src="https://youtu.be/dQw4w9WgXcQ?si=bk_0seWPAck53fJA" aspect="wide" caption="An example video embed." /%}',
+      "",
+      '{% cta title="Ready?" body="Talk to the team." actionHref="/contact" actionLabel="Contact" /%}',
+    ].join("\n");
+
+    const result = parseDraftSource({
+      revisionId: "rev-embed-youtube",
+      source,
+      sourceHash: crypto.createHash("sha256").update(source).digest("hex"),
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.page.blocks[2]).toMatchObject({
+        aspect: "wide",
+        caption: "An example video embed.",
+        provider: "youtube",
+        src: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        title: "Example video",
+        type: "embed",
+      });
+    }
+  });
+
+  it("rejects embed urls that do not match their provider", () => {
+    const source = [
+      "---",
+      "template: guide",
+      "slug: /bad-embed",
+      "title: bad embed",
+      "description: invalid embeds should fail",
+      "---",
+      "",
+      '{% hero eyebrow="embed" title="Bad embed" deck="..." /%}',
+      "",
+      '{% sectionCopy title="Body" %}',
+      "body",
+      "{% /sectionCopy %}",
+      "",
+      '{% embed title="Bad embed" provider="youtube" src="https://calendar.google.com/calendar/embed?src=test" aspect="wide" /%}',
+      "",
+      '{% embed title="Insecure embed" provider="youtube" src="http://www.youtube.com/embed/dQw4w9WgXcQ" /%}',
+      "",
+      '{% cta title="Ready?" body="Talk to the team." actionHref="/contact" actionLabel="Contact" /%}',
+    ].join("\n");
+
+    const result = parseDraftSource({
+      revisionId: "rev-bad-embed",
+      source,
+      sourceHash: crypto.createHash("sha256").update(source).digest("hex"),
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.issues.some((issue) => issue.message.includes("youtube embeds must use"))).toBe(true);
+      expect(result.issues.some((issue) => issue.message.includes("must be an https url"))).toBe(true);
     }
   });
 

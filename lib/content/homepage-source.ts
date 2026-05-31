@@ -38,10 +38,14 @@ export function formatMarkdownForDisplay(source: string) {
 }
 
 export function getHomepageMarkdownSource() {
-  return formatMarkdownForDisplay(
-    fs.readFileSync(
-      path.join(process.cwd(), "content/archive/index/current.md"),
-      "utf8"
-    )
-  );
+  try {
+    return formatMarkdownForDisplay(
+      fs.readFileSync(
+        path.join(process.cwd(), "content/archive/index/current.md"),
+        "utf8"
+      )
+    );
+  } catch {
+    return "";
+  }
 }

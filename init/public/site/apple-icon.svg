@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" role="img" aria-label="Site icon">
+  <rect width="180" height="180" rx="40" fill="Canvas"/>
+  <path
+    d="M50 56h80v18H70v25h49v18H70v9h63v18H50V56Z"
+    fill="CanvasText"
+  />
+</svg>

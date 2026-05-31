@@ -28,7 +28,7 @@ Site-level changes live in code, not markdown.
 Use these when you need to change global behavior:
 
 - `site/config.ts`
-  site identity, canonical site url, nav, footer copy, manifest defaults, contact defaults, social image variants
+  site identity, canonical site url, nav, footer copy, manifest defaults, site icon paths, contact defaults, social image variants
 - `site/blocks.ts` and `site/templates.ts`
   site-owned registry composition points for swapping the existing block and template renderers in a fork
 - `lib/content/metadata.ts`
@@ -47,10 +47,12 @@ today, only renderer overrides live cleanly in `site/blocks.ts` and `site/templa
 Important:
 
 - the header and mobile menu are code-owned in `site/config.ts`
-- the header is flat. top-level links are `home`, `features`, `how it works`, `how-to`, `case studies`, and `contact`
-- publishing `/howto/...` or `/case-studies/...` pages does not add child links to nav by itself
-- `/howto` and `/case-studies` are generated archive indexes in code until real markdown pages exist at those slugs
+- the starter header is flat. top-level links come from the active site's `site/config.ts`
+- publishing a page does not add it to nav by itself
 - if a page should appear as a top-level nav item, a coding agent must update `site/config.ts`
+- framework `main` ignores active `site/config.ts`; if it is missing, commands generate a fallback from `site/default-config.ts`
+- browser and install icons are site-owned assets in `public/site/`; `npm run site:init` creates starter copies from `init/public/site/`
+- starter pages and starter social cards are tracked under `init/` and copied into active site-owned paths by `npm run site:init`
 - `content/site.ts` still exists as a compatibility shim, but new site customization work should not start there
 
 ### Template-Level
@@ -86,12 +88,58 @@ Page-level markdown can control:
 - the page url via `slug`
 - page metadata
 - page body blocks
+- image references inside approved blocks, using site-owned files under `public/images/`
 
 Page-level markdown cannot control:
 
 - the global nav or footer
 - which pages appear in the header or mobile menu
 - shared styling rules
+
+## Media Blocks
+
+Website images belong to the site, not the framework. Put image files under `public/images/` in the website repo, then reference them from approved markdown blocks with leading-slash paths such as `/images/dive-boat.jpg`.
+
+Supported image-capable blocks:
+
+- `hero`
+  accepts `imageSrc`, optional `imageAlt`, optional `imageCaption`, `imageMode="inline|background"`, and `imageOverlay="none|soft|strong"`
+- `sectionCopy`
+  accepts one supporting image with `imageSrc`, optional `imageAlt`, optional `imageCaption`, and `imagePosition="top|left|right"`
+- `mediaCard`
+  creates one image card with `title`, `body`, `imageSrc`, optional image metadata, optional action, and `imagePosition="top|left|right|background"`
+- `mediaGrid`
+  contains one or more `mediaCard` child tags
+
+Example:
+
+```md
+{% mediaGrid %}
+{% mediaCard title="Dive boat trips" body="Small-group days on the reef." imageSrc="/images/dive-boat.jpg" imageAlt="Divers boarding a dive boat" actionHref="/trips" actionLabel="View trips" /%}
+{% mediaCard title="Training dives" body="Skill-building days." imageSrc="/images/training.jpg" imageAlt="Instructor with divers" /%}
+{% /mediaGrid %}
+```
+
+## Embed Blocks
+
+Embeds belong in markdown, but the framework controls which providers and URL shapes are accepted. Use HTTPS embed URLs from approved providers so pages do not need site-specific renderer code for common iframe content.
+
+Supported providers:
+
+- `youtube`
+  accepts canonical `https://www.youtube.com/embed/...` URLs. Pasted YouTube share URLs such as `https://youtu.be/dQw4w9WgXcQ?si=bk_0seWPAck53fJA` are normalized during validation.
+- `googleCalendar`
+  accepts `https://calendar.google.com/calendar/embed...` URLs.
+- `googleMaps`
+  accepts `https://www.google.com/maps/embed...` URLs.
+
+Example:
+
+```md
+{% embed title="Example video" provider="youtube" src="https://www.youtube.com/embed/dQw4w9WgXcQ" aspect="wide" caption="An example video embed." /%}
+```
+
+The optional `aspect` value can be `wide`, `standard`, `square`, or `tall`.
 
 ## Never Touch These Directly
 
@@ -210,8 +258,8 @@ Minimum valid frontmatter:
 ```yaml
 ---
 template: guide
-slug: /howto/editorial/publishing-workflow
-title: publishing workflow
+slug: /docs/publishing
+title: publishing guide
 description: how to validate and publish a page safely through the content pipeline
 ---
 ```
@@ -221,28 +269,28 @@ Full metadata example:
 ```yaml
 ---
 template: guide
-slug: /howto/editorial/publishing-workflow
-page_id: howto-editorial-publishing-workflow
+slug: /docs/publishing
+page_id: docs-publishing
 status: published
 
-title: publishing workflow
+title: publishing guide
 description: how to validate and publish a page safely through the content pipeline
 summary: stage drafts, lint them, and accept them without touching generated runtime files
 
-seo_title: publishing workflow for a markdown-first site
-canonical_url: /howto/editorial/publishing-workflow
+seo_title: publishing guide for a structured site
+canonical_url: /docs/publishing
 robots: index
 
-social_title: publishing workflow
+social_title: publishing guide
 social_description: stage drafts, lint them, and accept them without touching generated runtime files
 social_image: guide
 twitter_card: summary_large_image
 
-author: PageQuarry
+author: Example Team
 published_at: 2026-04-13T00:00:00Z
 updated_at: 2026-04-13T00:00:00Z
 redirect_from:
-  - /guides/publishing-workflow
+  - /guides/publishing
 ---
 ```
 
@@ -280,13 +328,13 @@ common patterns:
 ### Hero With a Direct Email Button
 
 ```md
-{% hero eyebrow="contact" title="replace this page before launch." deck="..." actionHref="mailto:hello@pagequarry.com" actionLabel="email" /%}
+{% hero eyebrow="contact" title="replace this page before launch." deck="..." actionHref="mailto:hello@example.com" actionLabel="email" /%}
 ```
 
 ### Hero With Email and Subject
 
 ```md
-{% hero eyebrow="contact" title="replace this page before launch." deck="..." actionHref="mailto:hello@pagequarry.com?subject=hello%20from%20the%20starter%20site" actionLabel="email" /%}
+{% hero eyebrow="contact" title="replace this page before launch." deck="..." actionHref="mailto:hello@example.com?subject=hello%20from%20the%20starter%20site" actionLabel="email" /%}
 ```
 
 Important:

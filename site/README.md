@@ -9,6 +9,8 @@ This directory is the site-owned seam for an upstream fork workflow.
 - `templates.ts`
   explicit composition point for site-owned overrides of the existing template keys
 
+On framework `main`, `default-config.ts` plus generic registry composition files are tracked so the skeleton can build before a site is initialized. Active `site/config.ts` is ignored and belongs to the downstream website. If it is missing, framework commands generate a fallback `site/config.ts` that re-exports `default-config.ts`; `npm run site:init` replaces that fallback with a starter site-owned config from `init/site/`.
+
 Today this seam is intentionally narrow:
 
 - swap an existing renderer key in `site/blocks.ts` or `site/templates.ts`

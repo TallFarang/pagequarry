@@ -12,11 +12,20 @@
 
 # testing
 /coverage
+/content/archive/*
+!/content/archive/README.md
 /content/.state/
+/content/examples/seed/*
 /content/submit-here/*
 !/content/submit-here/README.md
 /content/recovered-drafts/*
 !/content/recovered-drafts/README.md
+/public/_redirects
+/public/images/
+/public/og/
+/public/site/
+/site/config.ts
+/wrangler.toml
 
 # next.js
 /.next/

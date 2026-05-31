@@ -55,8 +55,8 @@ That tells you:
 ```yaml
 ---
 template: guide
-slug: /howto/editorial/publishing-workflow
-title: publishing workflow
+slug: /docs/publishing
+title: publishing guide
 description: how to validate and publish a page safely through the content pipeline
 ---
 ```
@@ -66,28 +66,28 @@ description: how to validate and publish a page safely through the content pipel
 ```yaml
 ---
 template: guide
-slug: /howto/editorial/publishing-workflow
-page_id: howto-editorial-publishing-workflow
+slug: /docs/publishing
+page_id: docs-publishing
 status: published
 
-title: publishing workflow
+title: publishing guide
 description: how to validate and publish a page safely through the content pipeline
 summary: stage drafts, lint them, and accept them without touching generated runtime files
 
-seo_title: publishing workflow for a markdown-first site
-canonical_url: /howto/editorial/publishing-workflow
+seo_title: publishing guide for a structured site
+canonical_url: /docs/publishing
 robots: index
 
-social_title: publishing workflow
+social_title: publishing guide
 social_description: stage drafts, lint them, and accept them without touching generated runtime files
 social_image: guide
 twitter_card: summary_large_image
 
-author: PageQuarry
+author: Example Team
 published_at: 2026-04-13T00:00:00Z
 updated_at: 2026-04-13T00:00:00Z
 redirect_from:
-  - /guides/publishing-workflow
+  - /guides/publishing
 ---
 ```
 
@@ -128,13 +128,13 @@ npm run content -- edit content/submit-here/<file>.md
 ### Email Button
 
 ```md
-{% hero eyebrow="contact" title="replace this page before launch." deck="..." actionHref="mailto:hello@pagequarry.com" actionLabel="email" /%}
+{% hero eyebrow="contact" title="replace this page before launch." deck="..." actionHref="mailto:hello@example.com" actionLabel="email" /%}
 ```
 
 ### Email Button With Subject
 
 ```md
-{% hero eyebrow="contact" title="replace this page before launch." deck="..." actionHref="mailto:hello@pagequarry.com?subject=hello%20from%20the%20starter%20site" actionLabel="email" /%}
+{% hero eyebrow="contact" title="replace this page before launch." deck="..." actionHref="mailto:hello@example.com?subject=hello%20from%20the%20starter%20site" actionLabel="email" /%}
 ```
 
 Important:

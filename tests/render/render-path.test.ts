@@ -13,7 +13,9 @@ import type { ContentBlock, ManagedPage } from "@/content/types";
 import { listPages, submitDraftFile } from "@/lib/content/state";
 import { siteBlockRegistry } from "@/site/blocks";
 import { siteTemplateRegistry } from "@/site/templates";
-import { createTempRoot, copyFixture } from "@/tests/helpers/temp-root";
+import { blockRegistry as coreBlockRegistry } from "@/components/blocks/registry";
+import { templateRegistry as coreTemplateRegistry } from "@/components/templates/registry";
+import { createTempRoot, writeGenericDraft } from "@/tests/helpers/temp-root";
 
 const originalHeroBlock = siteBlockRegistry.hero;
 const originalGuideTemplate = siteTemplateRegistry.guide;
@@ -22,23 +24,23 @@ function makePage(overrides: Partial<ManagedPage> = {}): ManagedPage {
   return {
     blocks: [],
     meta: {
-      author: "PageQuarry",
+      author: "Example Team",
       canonicalUrl: "/guide",
       description: "guide description",
       robots: {
         follow: true,
         index: true,
       },
-      seoTitle: "guide title",
+      seoTitle: "example guide title",
       social: {
         description: "guide description",
         image: "/social/guide.png",
         imageVariant: "guide",
-        title: "guide title",
+        title: "example guide title",
         twitterCard: "summary_large_image",
       },
       summary: "guide summary",
-      title: "guide title",
+      title: "example guide title",
     },
     pageId: "guide-page",
     redirectFrom: [],
@@ -94,14 +96,23 @@ describe("render path", () => {
         block: {
           type: "hero",
           eyebrow: "eyebrow",
-          title: "site hero",
+          title: "custom hero",
           deck: "deck",
         },
       })
     );
 
     expect(html).toContain('data-site-block="hero"');
-    expect(html).toContain("site hero");
+    expect(html).toContain("custom hero");
+  });
+
+  it("uses core block renderers by default in production", () => {
+    expect(siteBlockRegistry.embed).toBe(coreBlockRegistry.embed);
+    expect(siteBlockRegistry.hero).toBe(coreBlockRegistry.hero);
+    expect(siteBlockRegistry.mediaCard).toBe(coreBlockRegistry.mediaCard);
+    expect(siteBlockRegistry.mediaGrid).toBe(coreBlockRegistry.mediaGrid);
+    expect(siteBlockRegistry.cta).toBe(coreBlockRegistry.cta);
+    expect(siteBlockRegistry.sectionCopy).toBe(coreBlockRegistry.sectionCopy);
   });
 
   it("renders site template overrides before the core registry", () => {
@@ -112,12 +123,17 @@ describe("render path", () => {
     const html = renderToStaticMarkup(createElement(RenderPage, { page: makePage() }));
 
     expect(html).toContain('data-site-template="guide"');
-    expect(html).toContain("guide title");
+    expect(html).toContain("example guide title");
+  });
+
+  it("uses core templates by default in production", () => {
+    expect(siteTemplateRegistry.hub).toBe(coreTemplateRegistry.hub);
+    expect(siteTemplateRegistry.narrative).toBe(coreTemplateRegistry.narrative);
   });
 
   it("renders accepted content pages through the site template seam", () => {
     const rootDir = createTempRoot();
-    const filePath = copyFixture(rootDir, "home.md");
+    const filePath = writeGenericDraft(rootDir, "home");
     const submit = submitDraftFile({ filePath, rootDir });
     expect(submit.ok).toBe(true);
 
@@ -126,8 +142,8 @@ describe("render path", () => {
 
     const html = renderToStaticMarkup(createElement(RenderPage, { page: page! }));
 
-    expect(html).toContain("markdown-first publishing");
-    expect(html).toContain("ship a site that edits through markdown");
-    expect(html).toContain("start by editing the site config and starter pages");
+    expect(html).toContain("Publish structured pages");
+    expect(html).toContain("Content pipeline");
+    expect(html).toContain("Start publishing");
   });
 });

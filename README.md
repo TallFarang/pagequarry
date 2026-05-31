@@ -1,6 +1,6 @@
-# PageQuarry
+# Site Skeleton
 
-PageQuarry is a self-hostable, markdown-first site framework for editorial websites.
+Site Skeleton is a self-hostable, markdown-first site framework for editorial websites.
 
 It is built for a simple upstream-fork workflow:
 - fork the repo
@@ -40,6 +40,50 @@ npm run build
 
 `npm run content -- audit` matters on a fresh clone because `content/.state/` is ignored and rebuilt from the accepted archive. in that case, `regenerated` can be non-zero without meaning anything is wrong. `quarantined` should stay at `0` unless the audit found misplaced markdown or direct edits to generated files.
 
+## Start A New Site
+
+Run the starter initializer when you want a working neutral site quickly:
+
+```bash
+npm run site:init
+```
+
+This copies generic starter files from `init/` into the active website paths, then seeds the neutral starter pages through the content pipeline.
+
+Tracked starter sources:
+
+- `init/site/*`
+- `init/content/examples/seed/*`
+- `init/public/site/*`
+- `init/public/og/*`
+
+Generated site-owned targets:
+
+- `site/config.ts`
+- `site/block-overrides.tsx`
+- `site/template-overrides.tsx`
+- `content/examples/seed/*`
+- `public/site/*`
+- `public/og/*`
+
+Framework `main` does not track the active `site/config.ts`. If no site config exists yet, framework commands create an ignored fallback that re-exports `site/default-config.ts`; `site:init` replaces that fallback with a starter site-owned config.
+
+After that, update:
+
+- `site/config.ts` for identity, navigation, footer, metadata, theme, and icon paths
+- `public/site/*` for browser and install icons
+- `public/og/*` for social card images
+- `public/images/*` for page images referenced by media-capable blocks
+- `content/submit-here/*` for your real pages
+
+If any generated target already exists with different content, `site:init` stops instead of overwriting it. Use `npm run content -- site-init --force` only when you intentionally want to replace starter files.
+
+## Pull Into An Existing Site
+
+Existing site repos do not need to run `site:init`. Keep their current site-owned files.
+
+Clean framework `main` does not track active starter, demo, or website files. If a site is migrating from older framework history, the migration merge may still report delete/modify conflicts for files your site already owns, such as `content/archive/*`, `public/images/*`, `public/site/*`, `public/og/*`, `site/config.ts`, or site override files. Resolve those conflicts by keeping the website's versions. After the migration, framework `main` ignores those active site-owned paths and should not keep reintroducing starter files there.
+
 ## Where Agents Should Edit
 
 ### Site-Owned Surfaces
@@ -62,8 +106,8 @@ Start here for normal site customization:
   - tokens and global styling
 - `components/site/*`
   - shared site chrome and visual primitives
-- `content/examples/seed/*`
-  - starter content examples
+- `init/*`
+  - tracked starter files copied by `npm run site:init`
 
 ### Canonical CMS Core
 
@@ -97,7 +141,7 @@ Leave these alone unless you are improving the framework itself:
 
 - Do not edit `content/archive/*` or `content/.state/*` directly.
 - Put new drafts in `content/submit-here/` and use the content CLI to check, submit, or edit them.
-- Treat `content/examples/seed/*` as starter examples, not as hidden runtime state.
+- Treat `init/content/examples/seed/*` as starter examples, not as hidden runtime state.
 
 ### Repo Hygiene
 
@@ -132,22 +176,21 @@ Publishing model:
 
 ## Default Starter Routes
 
-The repo ships with safe placeholder content so it can be public without leaking private history.
+The repo ships with neutral placeholder templates under `init/` so a new website can be bootstrapped quickly.
 
 Default routes:
 - `/`
 - `/features`
-- `/how-it-works`
-- `/howto/editorial/publishing-workflow`
-- `/case-studies/teams/community-knowledge-base`
 - `/contact`
 
-Replace them through the content pipeline or reseed from `content/examples/seed/`.
+Create them with `npm run site:init`, then replace them through the content pipeline.
 
 ## Repo Shape
 
 - `site/*`
-  site-owned customization seam for downstream forks
+  active site-owned customization seam for downstream forks
+- `init/*`
+  tracked starter files copied into active site-owned paths by `npm run site:init`
 - `content/*`
   editorial inputs, archive, and recovery paths
 - `lib/content/*`

@@ -1,4 +1,4 @@
-# PageQuarry Agent Rules
+# Site Skeleton Agent Rules
 
 This repo is a constrained frontend system. Keep future AI edits predictable and safe for a public repo.
 
