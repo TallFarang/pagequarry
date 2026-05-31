@@ -207,6 +207,7 @@ Create them with `npm run site:init`, then replace them through the content pipe
 The app is configured for static export with `next build`.
 
 - `next.config.ts` uses `output: "export"`
+- `next.config.ts` disables Next image optimization so `next/image` emits direct `/images/...` asset URLs for static hosts
 - `public/_worker.js` can enforce a canonical host when `CANONICAL_HOST` is set
 - `.github/workflows/deploy-pages.yml` can deploy to Cloudflare Pages when repo variables and secrets are configured
 
