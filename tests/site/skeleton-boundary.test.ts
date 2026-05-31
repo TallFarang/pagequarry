@@ -57,4 +57,26 @@ describe("skeleton boundary", () => {
 
     expect(matches).toEqual([]);
   });
+
+  it("does not expose active homepage markdown source-view routes or helpers", () => {
+    const forbiddenSourceViewTerms = [
+      "homepage-markdown",
+      "HomepageMarkdown",
+      "getHomepageMarkdownSource",
+      "Look Under the Hood",
+      "content/archive/index/current.md",
+    ];
+    const matches = walkFiles(process.cwd()).flatMap((relativePath) => {
+      if (relativePath === path.join("tests", "site", "skeleton-boundary.test.ts")) {
+        return [];
+      }
+
+      const content = fs.readFileSync(path.join(process.cwd(), relativePath), "utf8");
+      return forbiddenSourceViewTerms
+        .filter((term) => content.includes(term))
+        .map((term) => `${relativePath}: ${term}`);
+    });
+
+    expect(matches).toEqual([]);
+  });
 });

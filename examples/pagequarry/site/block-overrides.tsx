@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 import { Button } from "@/components/site/button";
-import { HomepageMarkdownTrigger } from "@/components/site/homepage-markdown-view";
 import { PageContainer } from "@/components/site/page-container";
 import { Section } from "@/components/site/section";
 import { Text } from "@/components/site/text";
@@ -145,7 +144,6 @@ export function PageQuarryHeroBlock({
                       ) : null}
                     </Link>
                   </Button>
-                  <HomepageMarkdownTrigger />
                 </div>
               ) : null}
             </div>
