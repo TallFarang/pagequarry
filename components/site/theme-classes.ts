@@ -22,10 +22,21 @@ export const surfaceClasses = {
     "theme-surface-paper rounded-[var(--panel-radius)] border border-border bg-surface/86 shadow-[var(--shadow-soft)]",
 } as const;
 
+export const mediaClasses = {
+  soft: "theme-media-soft rounded-[var(--panel-radius)]",
+  editorial: "theme-media-editorial rounded-[var(--panel-radius)]",
+  crisp: "theme-media-crisp rounded-[var(--panel-radius)]",
+  fieldNote: "theme-media-field-note rounded-[var(--panel-radius)]",
+} as const;
+
 export function activeMotionClass() {
   return motionClasses[activeSiteTheme.motion];
 }
 
 export function activeSurfaceClass() {
   return surfaceClasses[activeSiteTheme.surface];
+}
+
+export function activeMediaClass() {
+  return mediaClasses[activeSiteTheme.media];
 }

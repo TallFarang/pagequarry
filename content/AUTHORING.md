@@ -88,12 +88,37 @@ Page-level markdown can control:
 - the page url via `slug`
 - page metadata
 - page body blocks
+- image references inside approved blocks, using site-owned files under `public/images/`
 
 Page-level markdown cannot control:
 
 - the global nav or footer
 - which pages appear in the header or mobile menu
 - shared styling rules
+
+## Media Blocks
+
+Website images belong to the site, not the framework. Put image files under `public/images/` in the website repo, then reference them from approved markdown blocks with leading-slash paths such as `/images/dive-boat.jpg`.
+
+Supported image-capable blocks:
+
+- `hero`
+  accepts `imageSrc`, optional `imageAlt`, optional `imageCaption`, `imageMode="inline|background"`, and `imageOverlay="none|soft|strong"`
+- `sectionCopy`
+  accepts one supporting image with `imageSrc`, optional `imageAlt`, optional `imageCaption`, and `imagePosition="top|left|right"`
+- `mediaCard`
+  creates one image card with `title`, `body`, `imageSrc`, optional image metadata, optional action, and `imagePosition="top|left|right|background"`
+- `mediaGrid`
+  contains one or more `mediaCard` child tags
+
+Example:
+
+```md
+{% mediaGrid %}
+{% mediaCard title="Dive boat trips" body="Small-group days on the reef." imageSrc="/images/dive-boat.jpg" imageAlt="Divers boarding a dive boat" actionHref="/trips" actionLabel="View trips" /%}
+{% mediaCard title="Training dives" body="Skill-building days." imageSrc="/images/training.jpg" imageAlt="Instructor with divers" /%}
+{% /mediaGrid %}
+```
 
 ## Never Touch These Directly
 

@@ -1,10 +1,11 @@
 import Link from "next/link";
+import Image from "next/image";
 
 import { Button } from "@/components/site/button";
 import { PageContainer } from "@/components/site/page-container";
 import { Section } from "@/components/site/section";
 import { Text } from "@/components/site/text";
-import { activeSurfaceClass } from "@/components/site/theme-classes";
+import { activeMediaClass, activeSurfaceClass } from "@/components/site/theme-classes";
 import type { HeroBlockData } from "@/content/types";
 import { cn } from "@/lib/cn";
 import { activeSiteTheme } from "@/site/theme-runtime";
@@ -47,14 +48,73 @@ const heroAsideClasses = {
   fieldIntro: "border-t border-border pt-4 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0",
 } as const;
 
+const heroOverlayClasses = {
+  none: "",
+  soft: "absolute inset-0 bg-background/58 backdrop-blur-[1px]",
+  strong: "absolute inset-0 bg-background/78 backdrop-blur-[2px]",
+} as const;
+
+function HeroImage({
+  alt,
+  caption,
+  src,
+  mode,
+}: {
+  alt?: string;
+  caption?: string;
+  mode: "inline" | "background";
+  src: string;
+}) {
+  if (mode === "background") {
+    return (
+      <Image
+        alt={alt ?? ""}
+        className="object-cover"
+        fill
+        loading="eager"
+        priority
+        sizes="100vw"
+        src={src}
+      />
+    );
+  }
+
+  return (
+    <figure className={cn("overflow-hidden", activeMediaClass())}>
+      <div className="relative aspect-[4/3]">
+        <Image
+          alt={alt ?? ""}
+          className="object-cover"
+          fill
+          loading="eager"
+          sizes="(min-width: 1024px) 28vw, 100vw"
+          src={src}
+        />
+      </div>
+      {caption ? (
+        <figcaption className="border-t border-border bg-background/72 px-4 py-3">
+          <Text as="span" variant="bodySmall">
+            {caption}
+          </Text>
+        </figcaption>
+      ) : null}
+    </figure>
+  );
+}
+
 export function HeroBlock({
   eyebrow,
   title,
   deck,
   action,
   aside,
+  image,
+  imageMode = "inline",
+  imageOverlay = "soft",
 }: HeroBlockData) {
   const hero = activeSiteTheme.hero;
+  const hasBackgroundImage = Boolean(image && imageMode === "background");
+  const hasAsideColumn = Boolean(aside || (image && imageMode === "inline"));
 
   return (
     <Section spacing="hero">
@@ -63,10 +123,23 @@ export function HeroBlock({
           className={cn(
             heroContainerClasses[hero],
             hero === "oceanOpen" ? activeSurfaceClass() : null,
-            hero === "oceanOpen" ? "p-6 sm:p-8" : null
+            hero === "oceanOpen" ? "p-6 sm:p-8" : null,
+            hasBackgroundImage ? "relative overflow-hidden" : null
           )}
         >
-          <div className="max-w-4xl">
+          {image && hasBackgroundImage ? (
+            <>
+              <HeroImage
+                alt={image.alt}
+                caption={image.caption}
+                mode="background"
+                src={image.src}
+              />
+              <div className={heroOverlayClasses[imageOverlay]} />
+            </>
+          ) : null}
+
+          <div className="relative z-10 max-w-4xl">
             <Text className="mb-4" variant="eyebrow">
               {eyebrow}
             </Text>
@@ -85,16 +158,28 @@ export function HeroBlock({
             ) : null}
           </div>
 
-          {aside ? (
-            <div
-              className={cn(
-                heroAsideClasses[hero],
-                hero === "oceanOpen" ? activeSurfaceClass() : null
-              )}
-            >
-              <Text as="p" variant="bodySmall" className="leading-7">
-                {aside}
-              </Text>
+          {hasAsideColumn ? (
+            <div className="relative z-10 grid gap-5">
+              {image && imageMode === "inline" ? (
+                <HeroImage
+                  alt={image.alt}
+                  caption={image.caption}
+                  mode="inline"
+                  src={image.src}
+                />
+              ) : null}
+              {aside ? (
+                <div
+                  className={cn(
+                    heroAsideClasses[hero],
+                    hero === "oceanOpen" ? activeSurfaceClass() : null
+                  )}
+                >
+                  <Text as="p" variant="bodySmall" className="leading-7">
+                    {aside}
+                  </Text>
+                </div>
+              ) : null}
             </div>
           ) : null}
         </div>

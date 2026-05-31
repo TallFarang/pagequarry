@@ -8,6 +8,7 @@ export type LayoutTheme = "open" | "reading" | "contained" | "compact";
 export type SectionTheme = "open" | "compact" | "banded";
 export type CtaTheme = "open" | "contained" | "quiet";
 export type MetricsTheme = "openGrid" | "cards";
+export type MediaTheme = "soft" | "editorial" | "crisp" | "fieldNote";
 export type MotionTheme = "gentle" | "minimal" | "snappy" | "quiet";
 export type ProcessTheme = "timeline" | "cards";
 export type QuoteTheme = "accentRule" | "panel";
@@ -21,6 +22,7 @@ export type SiteTheme = {
   cta: CtaTheme;
   hero: HeroTheme;
   layout: LayoutTheme;
+  media: MediaTheme;
   metrics: MetricsTheme;
   motion: MotionTheme;
   process: ProcessTheme;
@@ -44,6 +46,7 @@ export const themePresets = {
     cta: "contained",
     hero: "oceanOpen",
     layout: "contained",
+    media: "soft",
     metrics: "cards",
     motion: "gentle",
     process: "timeline",
@@ -59,6 +62,7 @@ export const themePresets = {
     cta: "quiet",
     hero: "editorialMasthead",
     layout: "reading",
+    media: "editorial",
     metrics: "openGrid",
     motion: "minimal",
     process: "timeline",
@@ -74,6 +78,7 @@ export const themePresets = {
     cta: "contained",
     hero: "studioSplit",
     layout: "contained",
+    media: "crisp",
     metrics: "cards",
     motion: "snappy",
     process: "cards",
@@ -89,6 +94,7 @@ export const themePresets = {
     cta: "open",
     hero: "fieldIntro",
     layout: "compact",
+    media: "fieldNote",
     metrics: "openGrid",
     motion: "quiet",
     process: "timeline",

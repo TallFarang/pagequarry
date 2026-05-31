@@ -88,6 +88,153 @@ describe("parseDraftSource", () => {
     }
   });
 
+  it("parses hero image attributes and a supporting section image", () => {
+    const source = [
+      "---",
+      "template: guide",
+      "slug: /reef",
+      "title: reef guide",
+      "description: how to prepare for a reef trip",
+      "---",
+      "",
+      '{% hero eyebrow="reef" title="Dive the reef" deck="Small-group reef trips." imageSrc="/images/reef.jpg" imageAlt="Divers above a reef" imageCaption="Morning conditions on the outer reef" imageMode="background" imageOverlay="soft" actionHref="/contact" actionLabel="Book" /%}',
+      "",
+      '{% sectionCopy eyebrow="prepare" title="What to bring" imageSrc="/images/kit.jpg" imageAlt="Dive kit on a bench" imageCaption="Pack light and check your gear" imagePosition="right" %}',
+      "Bring the basics and keep the deck clear.",
+      "{% /sectionCopy %}",
+      "",
+      '{% cta title="Ready?" body="Talk to the team." actionHref="/contact" actionLabel="Contact" /%}',
+    ].join("\n");
+
+    const result = parseDraftSource({
+      revisionId: "rev-media-attrs",
+      source,
+      sourceHash: crypto.createHash("sha256").update(source).digest("hex"),
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.page.blocks[0]).toMatchObject({
+        image: {
+          alt: "Divers above a reef",
+          caption: "Morning conditions on the outer reef",
+          src: "/images/reef.jpg",
+        },
+        imageMode: "background",
+        imageOverlay: "soft",
+        type: "hero",
+      });
+      expect(result.page.blocks[1]).toMatchObject({
+        image: {
+          alt: "Dive kit on a bench",
+          caption: "Pack light and check your gear",
+          src: "/images/kit.jpg",
+        },
+        imagePosition: "right",
+        type: "sectionCopy",
+      });
+    }
+  });
+
+  it("parses standalone media cards and media grids", () => {
+    const source = [
+      "---",
+      "template: guide",
+      "slug: /trips",
+      "title: trip guide",
+      "description: pick the right trip",
+      "---",
+      "",
+      '{% hero eyebrow="trips" title="Choose a trip" deck="Find the right day on the water." /%}',
+      "",
+      '{% mediaCard title="Dive boat trips" body="Small-group days on the reef." imageSrc="/images/dive-boat.jpg" imageAlt="Divers boarding a boat" imagePosition="left" actionHref="/trips/boat" actionLabel="View trips" /%}',
+      "",
+      "{% mediaGrid %}",
+      '{% mediaCard title="Training dives" body="Skill-building days." imageSrc="/images/training.jpg" imageAlt="Instructor with divers" imagePosition="top" /%}',
+      '{% mediaCard title="Whale shark season" body="A seasonal highlight." imageSrc="/images/whale-shark.jpg" imageAlt="Divers near a whale shark" imagePosition="background" imageCaption="Conditions vary by season" /%}',
+      "{% /mediaGrid %}",
+      "",
+      '{% sectionCopy title="Details" %}',
+      "Pick the trip that fits your certification and comfort.",
+      "{% /sectionCopy %}",
+      "",
+      '{% cta title="Ready?" body="Talk to the team." actionHref="/contact" actionLabel="Contact" /%}',
+    ].join("\n");
+
+    const result = parseDraftSource({
+      revisionId: "rev-media-blocks",
+      source,
+      sourceHash: crypto.createHash("sha256").update(source).digest("hex"),
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.page.blocks.map((block) => block.type)).toEqual([
+        "hero",
+        "mediaCard",
+        "mediaGrid",
+        "sectionCopy",
+        "cta",
+      ]);
+      expect(result.page.blocks[1]).toMatchObject({
+        action: { href: "/trips/boat", label: "View trips" },
+        image: { alt: "Divers boarding a boat", src: "/images/dive-boat.jpg" },
+        imagePosition: "left",
+        type: "mediaCard",
+      });
+      expect(result.page.blocks[2]).toMatchObject({
+        items: [
+          { image: { src: "/images/training.jpg" }, title: "Training dives" },
+          {
+            image: {
+              caption: "Conditions vary by season",
+              src: "/images/whale-shark.jpg",
+            },
+            imagePosition: "background",
+            title: "Whale shark season",
+          },
+        ],
+        type: "mediaGrid",
+      });
+    }
+  });
+
+  it("rejects invalid media options and mediaGrid children", () => {
+    const source = [
+      "---",
+      "template: guide",
+      "slug: /bad-media",
+      "title: bad media",
+      "description: invalid media should fail",
+      "---",
+      "",
+      '{% hero eyebrow="bad" title="Bad media" deck="..." imageSrc="/images/hero.jpg" imageMode="poster" /%}',
+      "",
+      "{% mediaGrid %}",
+      '{% linkItem href="/x" label="not a media card" /%}',
+      "{% /mediaGrid %}",
+      "",
+      '{% sectionCopy title="Body" imageSrc="/images/body.jpg" imagePosition="background" %}',
+      "body",
+      "{% /sectionCopy %}",
+      "",
+      '{% cta title="Ready?" body="Talk to the team." actionHref="/contact" actionLabel="Contact" /%}',
+    ].join("\n");
+
+    const result = parseDraftSource({
+      revisionId: "rev-bad-media",
+      source,
+      sourceHash: crypto.createHash("sha256").update(source).digest("hex"),
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.issues.some((issue) => issue.message.includes("imageMode"))).toBe(true);
+      expect(result.issues.some((issue) => issue.message.includes("mediaGrid may only contain mediaCard"))).toBe(true);
+      expect(result.issues.some((issue) => issue.message.includes("sectionCopy imagePosition"))).toBe(true);
+    }
+  });
+
   it("rejects invalid metadata fields and redirect aliases", () => {
     const source = [
       "---",

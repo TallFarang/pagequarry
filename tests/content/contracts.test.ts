@@ -31,6 +31,28 @@ function sectionCopy(): ContentBlock {
   };
 }
 
+function mediaCard(): ContentBlock {
+  return {
+    type: "mediaCard",
+    title: "card",
+    body: "body",
+    image: { src: "/images/card.jpg", alt: "card image" },
+  };
+}
+
+function mediaGrid(): ContentBlock {
+  return {
+    type: "mediaGrid",
+    items: [
+      {
+        title: "card",
+        body: "body",
+        image: { src: "/images/card.jpg", alt: "card image" },
+      },
+    ],
+  };
+}
+
 function processBlock(): ContentBlock {
   return {
     type: "process",
@@ -138,11 +160,11 @@ describe("content contracts", () => {
 
   it("accepts valid block sequences for every template family", () => {
     expect(
-      validateTemplateSequence("home", [hero(), metrics(), sectionCopy(), processBlock(), quote(), cta()])
+      validateTemplateSequence("home", [hero(), metrics(), sectionCopy(), mediaGrid(), processBlock(), quote(), cta()])
     ).toEqual([]);
-    expect(validateTemplateSequence("hub", [hero(), sectionCopy(), cta()])).toEqual([]);
-    expect(validateTemplateSequence("guide", [hero(), sectionCopy(), cta()])).toEqual([]);
-    expect(validateTemplateSequence("caseStudy", [hero(), metrics(), sectionCopy(), cta()])).toEqual([]);
-    expect(validateTemplateSequence("narrative", [hero(), sectionCopy(), processBlock(), cta()])).toEqual([]);
+    expect(validateTemplateSequence("hub", [hero(), mediaCard(), sectionCopy(), cta()])).toEqual([]);
+    expect(validateTemplateSequence("guide", [hero(), sectionCopy(), mediaGrid(), cta()])).toEqual([]);
+    expect(validateTemplateSequence("caseStudy", [hero(), metrics(), mediaCard(), sectionCopy(), cta()])).toEqual([]);
+    expect(validateTemplateSequence("narrative", [hero(), sectionCopy(), mediaCard(), processBlock(), cta()])).toEqual([]);
   });
 });

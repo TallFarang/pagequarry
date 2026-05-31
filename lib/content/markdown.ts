@@ -5,6 +5,7 @@ import type { Config, Node as MarkdocNode } from "@markdoc/markdoc";
 import type {
   ContentBlock,
   ManagedPage,
+  MediaCardBlockData,
   PageTemplateKey,
 } from "@/content/types";
 import { resolvePageMeta } from "@/lib/content/metadata";
@@ -35,6 +36,10 @@ export type ParseDraftFailure = {
 export type ParseDraftResult = ParseDraftSuccess | ParseDraftFailure;
 
 const sectionTone = ["default", "subtle"] as const;
+const heroImageModes = ["inline", "background"] as const;
+const imageOverlays = ["none", "soft", "strong"] as const;
+const mediaImagePositions = ["top", "left", "right", "background"] as const;
+const supportingImagePositions = ["top", "left", "right"] as const;
 
 const markdocConfig = {
   tags: {
@@ -53,6 +58,11 @@ const markdocConfig = {
         aside: { type: String },
         deck: { type: String, required: true },
         eyebrow: { type: String, required: true },
+        imageAlt: { type: String },
+        imageCaption: { type: String },
+        imageMode: { type: String, matches: [...heroImageModes] },
+        imageOverlay: { type: String, matches: [...imageOverlays] },
+        imageSrc: { type: String },
         title: { type: String, required: true },
       },
     },
@@ -61,6 +71,42 @@ const markdocConfig = {
         href: { type: String, required: true },
         label: { type: String, required: true },
         summary: { type: String },
+      },
+    },
+    mediaCard: {
+      attributes: {
+        actionHref: { type: String },
+        actionLabel: { type: String },
+        body: { type: String, required: true },
+        imageAlt: { type: String },
+        imageCaption: { type: String },
+        imagePosition: { type: String, matches: [...mediaImagePositions] },
+        imageSrc: { type: String, required: true },
+        title: { type: String, required: true },
+      },
+    },
+    mediaGrid: {
+      validate(node: MarkdocNode) {
+        const items = node.children.filter((child) => child.type === "tag");
+        if (items.length < 1) {
+          return [
+            {
+              id: "mediaGrid-empty",
+              level: "critical",
+              message: "mediaGrid must contain at least one mediaCard child tag.",
+            },
+          ];
+        }
+        if (items.some((child) => child.tag !== "mediaCard")) {
+          return [
+            {
+              id: "mediaGrid-children",
+              level: "critical",
+              message: "mediaGrid may only contain mediaCard child tags.",
+            },
+          ];
+        }
+        return [];
       },
     },
     metric: {
@@ -131,6 +177,10 @@ const markdocConfig = {
     sectionCopy: {
       attributes: {
         eyebrow: { type: String },
+        imageAlt: { type: String },
+        imageCaption: { type: String },
+        imagePosition: { type: String, matches: [...supportingImagePositions] },
+        imageSrc: { type: String },
         title: { type: String, required: true },
         tone: { type: String, matches: [...sectionTone] },
       },
@@ -216,6 +266,36 @@ function normalizeAction(
 
   errors.push(issue("actionHref and actionLabel must be provided together.", line));
   return undefined;
+}
+
+function normalizeMediaAsset(attrs: Record<string, unknown>) {
+  const src = String(attrs.imageSrc ?? "").trim();
+  if (!src) return undefined;
+
+  return {
+    alt: attrs.imageAlt ? String(attrs.imageAlt).trim() : undefined,
+    caption: attrs.imageCaption ? String(attrs.imageCaption).trim() : undefined,
+    src,
+  };
+}
+
+function normalizeMediaCardData(node: MarkdocNode, errors: LintIssue[]) {
+  return parseBlock({
+    action: normalizeAction(node.attributes, errors, lineOf(node)),
+    body: String(node.attributes.body ?? "").trim(),
+    image: normalizeMediaAsset(node.attributes),
+    imagePosition: node.attributes.imagePosition
+      ? String(node.attributes.imagePosition).trim()
+      : undefined,
+    title: String(node.attributes.title ?? "").trim(),
+    type: "mediaCard",
+  }, "mediaCard", errors, lineOf(node));
+}
+
+function isMediaCardBlock(
+  block: ContentBlock | null
+): block is { type: "mediaCard" } & MediaCardBlockData {
+  return Boolean(block && block.type === "mediaCard");
 }
 
 function parseBlock(
@@ -312,6 +392,10 @@ function normalizeSectionCopy(node: MarkdocNode, errors: LintIssue[]) {
     eyebrow: node.attributes.eyebrow
       ? String(node.attributes.eyebrow).trim()
       : undefined,
+    image: normalizeMediaAsset(node.attributes),
+    imagePosition: node.attributes.imagePosition
+      ? String(node.attributes.imagePosition).trim()
+      : undefined,
     links: links.length ? links : undefined,
     title: String(node.attributes.title ?? "").trim(),
     tone: node.attributes.tone
@@ -329,9 +413,36 @@ function normalizeTopLevelTag(node: MarkdocNode, errors: LintIssue[]) {
         aside: node.attributes.aside ? String(node.attributes.aside).trim() : undefined,
         deck: String(node.attributes.deck ?? "").trim(),
         eyebrow: String(node.attributes.eyebrow ?? "").trim(),
+        image: normalizeMediaAsset(node.attributes),
+        imageMode: node.attributes.imageMode
+          ? String(node.attributes.imageMode).trim()
+          : undefined,
+        imageOverlay: node.attributes.imageOverlay
+          ? String(node.attributes.imageOverlay).trim()
+          : undefined,
         title: String(node.attributes.title ?? "").trim(),
         type: "hero",
       }, "hero", errors, lineOf(node));
+    case "mediaCard":
+      return normalizeMediaCardData(node, errors);
+    case "mediaGrid": {
+      const items = node.children
+        .filter((child) => child.type === "tag" && child.tag === "mediaCard")
+        .map((child) => normalizeMediaCardData(child, errors))
+        .filter(isMediaCardBlock)
+        .map((item) => ({
+          action: item.action,
+          body: item.body,
+          image: item.image,
+          imagePosition: item.imagePosition,
+          title: item.title,
+        }));
+
+      return parseBlock({
+        items,
+        type: "mediaGrid",
+      }, "mediaGrid", errors, lineOf(node));
+    }
     case "metrics":
       return normalizeMetrics(node, errors);
     case "sectionCopy":

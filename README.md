@@ -73,6 +73,7 @@ After that, update:
 - `site/config.ts` for identity, navigation, footer, metadata, theme, and icon paths
 - `public/site/*` for browser and install icons
 - `public/og/*` for social card images
+- `public/images/*` for page images referenced by media-capable blocks
 - `content/submit-here/*` for your real pages
 
 If any generated target already exists with different content, `site:init` stops instead of overwriting it. Use `npm run content -- site-init --force` only when you intentionally want to replace starter files.

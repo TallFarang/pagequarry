@@ -7,6 +7,17 @@ export type LinkItem = ActionLink & {
   summary?: string;
 };
 
+export type MediaAsset = {
+  src: string;
+  alt?: string;
+  caption?: string;
+};
+
+export type MediaImagePosition = "top" | "left" | "right" | "background";
+export type SupportingImagePosition = Exclude<MediaImagePosition, "background">;
+export type HeroImageMode = "inline" | "background";
+export type ImageOverlay = "none" | "soft" | "strong";
+
 export type PageStatus = "draft" | "published";
 
 export type SocialImageVariant =
@@ -47,6 +58,9 @@ export type HeroBlockData = {
   deck: string;
   aside?: string;
   action?: ActionLink;
+  image?: MediaAsset;
+  imageMode?: HeroImageMode;
+  imageOverlay?: ImageOverlay;
 };
 
 export type SectionCopyBlockData = {
@@ -55,6 +69,8 @@ export type SectionCopyBlockData = {
   body: string;
   bullets?: string[];
   links?: LinkItem[];
+  image?: MediaAsset;
+  imagePosition?: SupportingImagePosition;
   tone?: "default" | "subtle";
 };
 
@@ -83,9 +99,23 @@ export type QuoteBlockData = {
   context: string;
 };
 
+export type MediaCardBlockData = {
+  title: string;
+  body: string;
+  image: MediaAsset;
+  imagePosition?: MediaImagePosition;
+  action?: ActionLink;
+};
+
+export type MediaGridBlockData = {
+  items: MediaCardBlockData[];
+};
+
 export type BlockPropsMap = {
   cta: CtaBlockData;
   hero: HeroBlockData;
+  mediaCard: MediaCardBlockData;
+  mediaGrid: MediaGridBlockData;
   metrics: MetricStripBlockData;
   process: ProcessBlockData;
   quote: QuoteBlockData;

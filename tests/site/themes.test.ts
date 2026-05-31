@@ -30,6 +30,7 @@ describe("site themes", () => {
         chrome: expect.any(String),
         cta: expect.any(String),
         hero: expect.any(String),
+        media: expect.any(String),
         metrics: expect.any(String),
         motion: expect.any(String),
         process: expect.any(String),
@@ -56,6 +57,7 @@ describe("site themes", () => {
     expect(theme.hero).toBe("editorialMasthead");
     expect(theme.button).toBe("quietLink");
     expect(theme.motion).toBe("minimal");
+    expect(theme.media).toBe("editorial");
     expect(theme.surface).toBe("plain");
     expect(theme.typography).toBe("editorial");
   });
@@ -67,6 +69,7 @@ describe("site themes", () => {
         button: "sharpOutline",
         chrome: "flat",
         layout: "compact",
+        media: "crisp",
         motion: "snappy",
         section: "compact",
         surface: "crisp",
@@ -80,6 +83,7 @@ describe("site themes", () => {
     expect(theme.button).toBe("sharpOutline");
     expect(theme.chrome).toBe("flat");
     expect(theme.layout).toBe("compact");
+    expect(theme.media).toBe("crisp");
     expect(theme.motion).toBe("snappy");
     expect(theme.section).toBe("compact");
     expect(theme.surface).toBe("crisp");
