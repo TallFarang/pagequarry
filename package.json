@@ -1,0 +1,52 @@
+{
+  "name": "site-skeleton",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "precontent": "npm run site:ensure-config",
+    "content": "node --import tsx ./scripts/site-content.ts",
+    "content:audit": "npm run content -- audit",
+    "content:seed": "npm run content -- seed content/examples/seed",
+    "site:init": "npm run content -- site-init",
+    "site:ensure-config": "node --import tsx ./scripts/ensure-site-config.ts",
+    "predev": "npm run site:ensure-config",
+    "dev": "next dev --webpack",
+    "prebuild": "npm run site:ensure-config && npm run content:audit",
+    "build": "next build --webpack",
+    "start": "next start",
+    "prelint": "npm run site:ensure-config",
+    "lint": "eslint",
+    "pretest": "npm run site:ensure-config",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@markdoc/markdoc": "^0.5.7",
+    "@radix-ui/react-dialog": "^1.1.15",
+    "@radix-ui/react-navigation-menu": "^1.2.14",
+    "@radix-ui/react-slot": "^1.2.4",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "js-yaml": "^4.1.1",
+    "next": "16.2.1",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "tailwind-merge": "^3.5.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitest/coverage-v8": "^4.1.1",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.1",
+    "playwright": "^1.59.1",
+    "tailwindcss": "^4",
+    "tsx": "^4.21.0",
+    "typescript": "^5",
+    "vitest": "^4.1.1"
+  }
+}

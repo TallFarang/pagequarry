@@ -1,0 +1,313 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f0f4f8;
+  --foreground: #1b2444;
+  --surface: #f7f9fc;
+  --muted: #5a6a7e;
+  --accent: #2563eb;
+  --accent-foreground: #f0f4f8;
+  --accent-soft: #dbeafe;
+  --border: #c7d2e0;
+  --control-radius: 1.15rem;
+  --panel-radius: 1.75rem;
+  --shadow-soft: 0 24px 60px rgb(16 32 48 / 0.08);
+  --shadow-button: 0 18px 36px rgb(16 32 48 / 0.18);
+  --motion-duration: 300ms;
+  --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-lift: -1px;
+  --motion-shadow: var(--shadow-button);
+  --type-display-size: clamp(3rem, 7vw, 4.5rem);
+  --type-section-size: clamp(2rem, 4vw, 3rem);
+  --type-body-leading: 2rem;
+  --type-heading-weight: 500;
+  --page-background:
+    radial-gradient(circle at 12% 12%, rgb(28 109 255 / 0.14), transparent 20%),
+    radial-gradient(circle at 88% 10%, rgb(0 188 212 / 0.12), transparent 18%),
+    linear-gradient(180deg, #edf4f9 0%, #f8fbfd 44%, #eef3f8 100%);
+  --page-grid:
+    linear-gradient(rgb(16 32 48 / 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(16 32 48 / 0.035) 1px, transparent 1px);
+  --page-glow:
+    radial-gradient(circle at 50% -12%, rgb(255 255 255 / 0.9), transparent 38%),
+    radial-gradient(circle at 78% 18%, rgb(28 109 255 / 0.12), transparent 18%);
+  --font-body: var(--font-site-skeleton-body), "Avenir Next", "Segoe UI", sans-serif;
+  --font-display: var(--font-site-skeleton-display), "Avenir Next", "Helvetica Neue", sans-serif;
+  --font-utility: var(--font-site-skeleton-utility), "SFMono-Regular", "IBM Plex Mono", monospace;
+  --font-brand: var(--font-utility);
+  --font-label: var(--font-utility);
+  --font-heading: var(--font-display);
+  --font-nav: var(--font-utility);
+  --font-metric: var(--font-display);
+}
+
+[data-theme="ocean"] {
+  --background: #eef8fb;
+  --foreground: #123047;
+  --surface: #f8fcff;
+  --muted: #5c7380;
+  --accent: #0277a6;
+  --accent-foreground: #f7fcff;
+  --accent-soft: #dff4fb;
+  --border: #b9d9e5;
+  --control-radius: 999px;
+  --panel-radius: 1.75rem;
+  --motion-duration: 320ms;
+  --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-lift: -2px;
+  --motion-shadow: 0 24px 56px rgb(18 48 71 / 0.2);
+  --type-display-size: clamp(3.1rem, 7.6vw, 5.1rem);
+  --type-section-size: clamp(2rem, 4.4vw, 3.3rem);
+  --type-body-leading: 2rem;
+  --type-heading-weight: 600;
+  --font-body: var(--font-site-skeleton-body), "Avenir Next", "Segoe UI", sans-serif;
+  --font-display: var(--font-body);
+  --font-brand: var(--font-body);
+  --font-label: var(--font-body);
+  --font-heading: var(--font-display);
+  --font-nav: var(--font-body);
+  --font-metric: var(--font-display);
+  --page-background:
+    radial-gradient(circle at 12% 8%, rgb(2 119 166 / 0.16), transparent 22%),
+    radial-gradient(circle at 86% 12%, rgb(31 168 177 / 0.16), transparent 20%),
+    linear-gradient(180deg, #eaf8fb 0%, #f9fdff 46%, #edf7fa 100%);
+  --page-grid:
+    linear-gradient(rgb(18 48 71 / 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(18 48 71 / 0.03) 1px, transparent 1px);
+  --page-glow:
+    radial-gradient(circle at 50% -14%, rgb(255 255 255 / 0.95), transparent 40%),
+    radial-gradient(circle at 78% 20%, rgb(2 119 166 / 0.13), transparent 18%);
+}
+
+[data-theme="editorial"] {
+  --background: #fbfaf7;
+  --foreground: #24211c;
+  --surface: #fffefd;
+  --muted: #6f6a61;
+  --accent: #7b4f2c;
+  --accent-foreground: #fffaf3;
+  --accent-soft: #f1e5d8;
+  --border: #ded7cb;
+  --control-radius: 0.35rem;
+  --panel-radius: 0.5rem;
+  --shadow-soft: none;
+  --shadow-button: none;
+  --motion-duration: 180ms;
+  --motion-ease: ease;
+  --motion-lift: 0px;
+  --motion-shadow: none;
+  --type-display-size: clamp(3.2rem, 6.8vw, 5.4rem);
+  --type-section-size: clamp(2.1rem, 4.2vw, 3.4rem);
+  --type-body-leading: 2.05rem;
+  --type-heading-weight: 600;
+  --font-body: var(--font-site-skeleton-editorial-body), Georgia, serif;
+  --font-display: var(--font-site-skeleton-editorial-serif), Georgia, serif;
+  --font-utility: var(--font-site-skeleton-utility), "SFMono-Regular", "IBM Plex Mono", monospace;
+  --font-brand: var(--font-display);
+  --font-label: var(--font-body);
+  --font-heading: var(--font-display);
+  --font-nav: var(--font-body);
+  --font-metric: var(--font-display);
+  --page-background: linear-gradient(180deg, #fbfaf7 0%, #f6f1e9 100%);
+  --page-grid: linear-gradient(rgb(36 33 28 / 0.04) 1px, transparent 1px);
+  --page-glow: linear-gradient(rgb(255 255 255 / 0.3), transparent);
+}
+
+[data-theme="studio"] {
+  --background: #f5f7f9;
+  --foreground: #101820;
+  --surface: #ffffff;
+  --muted: #5f6872;
+  --accent: #d64b32;
+  --accent-foreground: #fffafa;
+  --accent-soft: #ffe6df;
+  --border: #d5dbe1;
+  --control-radius: 0.15rem;
+  --panel-radius: 0.35rem;
+  --motion-duration: 160ms;
+  --motion-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --motion-lift: -3px;
+  --motion-shadow: 0 18px 44px rgb(16 24 32 / 0.18);
+  --type-display-size: clamp(3rem, 7vw, 5rem);
+  --type-section-size: clamp(1.9rem, 3.6vw, 2.8rem);
+  --type-body-leading: 1.85rem;
+  --type-heading-weight: 700;
+  --font-body: var(--font-site-skeleton-studio), Arial, sans-serif;
+  --font-display: var(--font-site-skeleton-studio), Arial, sans-serif;
+  --font-utility: var(--font-site-skeleton-utility), "SFMono-Regular", "IBM Plex Mono", monospace;
+  --font-brand: var(--font-body);
+  --font-label: var(--font-body);
+  --font-heading: var(--font-display);
+  --font-nav: var(--font-body);
+  --font-metric: var(--font-display);
+  --page-background: linear-gradient(180deg, #f5f7f9 0%, #ffffff 46%, #eef2f5 100%);
+  --page-grid:
+    linear-gradient(rgb(16 24 32 / 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(16 24 32 / 0.05) 1px, transparent 1px);
+  --page-glow: radial-gradient(circle at 75% 0%, rgb(214 75 50 / 0.11), transparent 22%);
+}
+
+[data-theme="fieldNote"] {
+  --background: #f7f8f1;
+  --foreground: #293126;
+  --surface: #fffffb;
+  --muted: #66705e;
+  --accent: #557a45;
+  --accent-foreground: #fbfff7;
+  --accent-soft: #e7efd9;
+  --border: #d5dac8;
+  --control-radius: 0.8rem;
+  --panel-radius: 0.9rem;
+  --motion-duration: 220ms;
+  --motion-ease: ease-out;
+  --motion-lift: -1px;
+  --motion-shadow: 0 14px 34px rgb(41 49 38 / 0.12);
+  --type-display-size: clamp(2.8rem, 6.4vw, 4.4rem);
+  --type-section-size: clamp(1.85rem, 3.8vw, 2.75rem);
+  --type-body-leading: 1.95rem;
+  --type-heading-weight: 600;
+  --font-body: var(--font-site-skeleton-body), "Avenir Next", "Segoe UI", sans-serif;
+  --font-display: var(--font-site-skeleton-editorial-serif), Georgia, serif;
+  --font-utility: var(--font-site-skeleton-utility), "SFMono-Regular", "IBM Plex Mono", monospace;
+  --font-brand: var(--font-display);
+  --font-label: var(--font-body);
+  --font-heading: var(--font-display);
+  --font-nav: var(--font-body);
+  --font-metric: var(--font-display);
+  --page-background: linear-gradient(180deg, #f7f8f1 0%, #fcfbf3 48%, #eef1e4 100%);
+  --page-grid:
+    linear-gradient(rgb(41 49 38 / 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(41 49 38 / 0.04) 1px, transparent 1px);
+  --page-glow: radial-gradient(circle at 80% 10%, rgb(85 122 69 / 0.12), transparent 20%);
+}
+
+[data-theme="custom"] {
+  --background: #f5f7fb;
+  --foreground: #1b2330;
+  --surface: #ffffff;
+  --muted: #667085;
+  --accent: #4f46e5;
+  --accent-foreground: #ffffff;
+  --accent-soft: #e0e7ff;
+  --border: #d8dee8;
+  --control-radius: 1rem;
+  --panel-radius: 1rem;
+  --motion-duration: 240ms;
+  --motion-ease: ease-out;
+  --motion-lift: -1px;
+  --motion-shadow: 0 18px 42px rgb(27 35 48 / 0.14);
+  --type-display-size: clamp(3rem, 7vw, 4.8rem);
+  --type-section-size: clamp(2rem, 4vw, 3rem);
+  --type-body-leading: 2rem;
+  --type-heading-weight: 600;
+  --font-body: var(--font-site-skeleton-body), "Avenir Next", "Segoe UI", sans-serif;
+  --font-display: var(--font-site-skeleton-display), "Avenir Next", "Helvetica Neue", sans-serif;
+  --font-utility: var(--font-site-skeleton-utility), "SFMono-Regular", "IBM Plex Mono", monospace;
+  --font-brand: var(--font-body);
+  --font-label: var(--font-body);
+  --font-heading: var(--font-display);
+  --font-nav: var(--font-body);
+  --font-metric: var(--font-display);
+  --page-background: linear-gradient(180deg, #f5f7fb 0%, #ffffff 52%, #eef2f7 100%);
+  --page-grid:
+    linear-gradient(rgb(27 35 48 / 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(27 35 48 / 0.035) 1px, transparent 1px);
+  --page-glow: radial-gradient(circle at 75% 5%, rgb(79 70 229 / 0.1), transparent 22%);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent-soft: var(--accent-soft);
+  --color-border: var(--border);
+  --font-sans: var(--font-body);
+  --font-serif: var(--font-display);
+  --font-mono: var(--font-utility);
+  --radius-control: var(--control-radius);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  color-scheme: light;
+}
+
+body {
+  background: var(--page-background);
+}
+
+.site-atmosphere::before {
+  position: fixed;
+  inset: 0;
+  z-index: -20;
+  pointer-events: none;
+  content: "";
+  background-image: var(--page-grid);
+  background-size: 36px 36px;
+  opacity: 0.4;
+  mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.75), transparent 88%);
+}
+
+.site-atmosphere::after {
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  pointer-events: none;
+  content: "";
+  background-image: var(--page-glow);
+}
+
+@layer base {
+  a {
+    @apply no-underline text-inherit;
+  }
+}
+
+@layer utilities {
+  .font-brand {
+    font-family: var(--font-brand);
+  }
+
+  .font-label {
+    font-family: var(--font-label);
+  }
+
+  .font-heading {
+    font-family: var(--font-heading);
+  }
+
+  .font-nav {
+    font-family: var(--font-nav);
+  }
+
+  .font-metric {
+    font-family: var(--font-metric);
+  }
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 20%, white);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    scroll-behavior: auto !important;
+    transition-duration: 1ms !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+  }
+
+  .theme-motion-gentle,
+  .theme-motion-snappy {
+    transform: none !important;
+  }
+}
