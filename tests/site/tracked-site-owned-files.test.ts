@@ -1,11 +1,10 @@
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
 const siteOwnedPrefixes = [
-  "content/archive/",
   "content/examples/seed/",
   "public/examples/",
   "public/og/",
@@ -41,5 +40,35 @@ describe("tracked site-owned files", () => {
     );
 
     expect(ownedFiles).toEqual([]);
+  });
+
+  it("keeps active accepted archive pages out of framework main", () => {
+    const tracked = execFileSync("git", ["ls-files", "content/archive"], {
+      cwd: process.cwd(),
+      encoding: "utf8",
+    })
+      .trim()
+      .split("\n")
+      .filter(Boolean);
+
+    expect(tracked).toEqual(["content/archive/README.md"]);
+  });
+
+  it("allows accepted archive markdown to be committed by downstream sites", () => {
+    const deployableArchivePaths = [
+      "content/archive/contact/current.md",
+      "content/archive/contact/revisions/20260413-101213218-example.md",
+    ];
+
+    const ignored = deployableArchivePaths.filter((file) => {
+      const result = spawnSync("git", ["check-ignore", "--no-index", file], {
+        cwd: process.cwd(),
+        encoding: "utf8",
+      });
+
+      return result.status === 0;
+    });
+
+    expect(ignored).toEqual([]);
   });
 });

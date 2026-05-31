@@ -9,7 +9,7 @@ It is built for a simple upstream-fork workflow:
 - write and publish content through the content pipeline
 - pull upstream improvements when useful, then let your agent resolve conflicts if needed
 
-The runtime only trusts generated state. Raw markdown is authoring input, not the live runtime source.
+The runtime reads generated state, but deployable content source lives in tracked `content/archive/**` markdown. Fresh builds rebuild generated state from that archive.
 
 ## What You Get
 
@@ -38,7 +38,7 @@ npm run test
 npm run build
 ```
 
-`npm run content -- audit` matters on a fresh clone because `content/.state/` is ignored and rebuilt from the accepted archive. in that case, `regenerated` can be non-zero without meaning anything is wrong. `quarantined` should stay at `0` unless the audit found misplaced markdown or direct edits to generated files.
+`npm run content -- audit` matters on a fresh clone because `content/.state/` is ignored and rebuilt from the accepted archive. In that case, `regenerated` can be non-zero without meaning anything is wrong. `quarantined` should stay at `0` unless the audit found misplaced markdown or direct edits to generated files.
 
 ## Start A New Site
 
@@ -82,7 +82,7 @@ If any generated target already exists with different content, `site:init` stops
 
 Existing site repos do not need to run `site:init`. Keep their current site-owned files.
 
-Clean framework `main` does not track active starter, demo, or website files. If a site is migrating from older framework history, the migration merge may still report delete/modify conflicts for files your site already owns, such as `content/archive/*`, `public/images/*`, `public/site/*`, `public/og/*`, `site/config.ts`, or site override files. Resolve those conflicts by keeping the website's versions. After the migration, framework `main` ignores those active site-owned paths and should not keep reintroducing starter files there.
+Clean framework `main` does not track active starter, demo, or website files. If a site is migrating from older framework history, the migration merge may still report delete/modify conflicts for files your site already owns, such as `content/archive/*`, `public/images/*`, `public/site/*`, `public/og/*`, `site/config.ts`, or site override files. Resolve those conflicts by keeping the website's versions. After the migration, framework `main` should not reintroduce starter files there; active site repos should commit accepted `content/archive/**` markdown as their deployable content source.
 
 ## Where Agents Should Edit
 
@@ -168,11 +168,13 @@ npm run content -- recovery-list
 ```
 
 Publishing model:
-- accepted revisions are mirrored into `content/archive/`
+- accepted revisions are mirrored into `content/archive/` and should be committed
 - the runtime rebuilds hidden generated state under `content/.state/`
 - only the newest accepted `published` revision per page becomes live
 - accepted `draft` revisions stay archived without replacing the live page
 - bad direct writes are quarantined into `content/recovered-drafts/`
+
+After publishing content, commit the changed files under `content/archive/**`. Do not commit `content/.state/**` or `public/_redirects`; those are generated during audit/build.
 
 ## Default Starter Routes
 

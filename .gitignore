@@ -12,8 +12,6 @@
 
 # testing
 /coverage
-/content/archive/*
-!/content/archive/README.md
 /content/.state/
 /content/examples/seed/*
 /content/submit-here/*
