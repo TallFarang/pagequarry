@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 
 import { Button } from "@/components/site/button";
 import { PageContainer } from "@/components/site/page-container";
@@ -32,12 +31,6 @@ const footerClasses = {
 } as const;
 
 export function SiteChrome({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-
-  if (pathname === "/homepage-markdown" || pathname === "/homepage-markdown/") {
-    return children;
-  }
-
   const chrome = activeSiteTheme.chrome;
 
   return (
