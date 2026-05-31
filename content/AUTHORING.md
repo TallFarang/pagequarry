@@ -100,6 +100,8 @@ Page-level markdown cannot control:
 
 Website images belong to the site, not the framework. Put image files under `public/images/` in the website repo, then reference them from approved markdown blocks with leading-slash paths such as `/images/dive-boat.jpg`.
 
+The framework is configured for static export, so image optimization is disabled at the framework level. Images referenced from markdown are served directly from the website repo's `public/images/` folder.
+
 Supported image-capable blocks:
 
 - `hero`
