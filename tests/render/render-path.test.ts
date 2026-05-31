@@ -107,6 +107,7 @@ describe("render path", () => {
   });
 
   it("uses core block renderers by default in production", () => {
+    expect(siteBlockRegistry.embed).toBe(coreBlockRegistry.embed);
     expect(siteBlockRegistry.hero).toBe(coreBlockRegistry.hero);
     expect(siteBlockRegistry.mediaCard).toBe(coreBlockRegistry.mediaCard);
     expect(siteBlockRegistry.mediaGrid).toBe(coreBlockRegistry.mediaGrid);

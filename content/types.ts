@@ -17,6 +17,8 @@ export type MediaImagePosition = "top" | "left" | "right" | "background";
 export type SupportingImagePosition = Exclude<MediaImagePosition, "background">;
 export type HeroImageMode = "inline" | "background";
 export type ImageOverlay = "none" | "soft" | "strong";
+export type EmbedProvider = "youtube" | "googleCalendar" | "googleMaps";
+export type EmbedAspect = "wide" | "standard" | "square" | "tall";
 
 export type PageStatus = "draft" | "published";
 
@@ -111,8 +113,17 @@ export type MediaGridBlockData = {
   items: MediaCardBlockData[];
 };
 
+export type EmbedBlockData = {
+  title: string;
+  provider: EmbedProvider;
+  src: string;
+  aspect?: EmbedAspect;
+  caption?: string;
+};
+
 export type BlockPropsMap = {
   cta: CtaBlockData;
+  embed: EmbedBlockData;
   hero: HeroBlockData;
   mediaCard: MediaCardBlockData;
   mediaGrid: MediaGridBlockData;

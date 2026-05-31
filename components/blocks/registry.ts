@@ -2,6 +2,7 @@ import type { ComponentType } from "react";
 
 import {
   CtaBlock,
+  EmbedBlock,
   HeroBlock,
   MediaCardBlock,
   MediaGridBlock,
@@ -14,6 +15,7 @@ import type { BlockPropsMap } from "@/content/types";
 
 export const blockRegistry = {
   cta: CtaBlock,
+  embed: EmbedBlock,
   hero: HeroBlock,
   mediaCard: MediaCardBlock,
   mediaGrid: MediaGridBlock,

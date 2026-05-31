@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
 import { CtaBlock } from "@/components/blocks/cta-block";
+import { EmbedBlock } from "@/components/blocks/embed-block";
 import { HeroBlock } from "@/components/blocks/hero-block";
 import { MediaCardBlock } from "@/components/blocks/media-card-block";
 import { MediaGridBlock } from "@/components/blocks/media-grid-block";
@@ -96,5 +97,25 @@ describe("theme rendering", () => {
     expect(cardHtml).toContain("%2Fimages%2Fdive-boat.jpg");
     expect(gridHtml).toContain("theme-layout-reading");
     expect(gridHtml).toContain("Training dives");
+  });
+
+  it("renders embeds with iframe safety attributes and theme surfaces", () => {
+    const html = renderToStaticMarkup(
+      createElement(EmbedBlock, {
+        title: "Example video",
+        provider: "youtube",
+        src: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        aspect: "wide",
+        caption: "An example video embed.",
+      })
+    );
+
+    expect(html).toContain("theme-surface-plain");
+    expect(html).toContain("<iframe");
+    expect(html).toContain('title="Example video"');
+    expect(html).toContain('src="https://www.youtube.com/embed/dQw4w9WgXcQ"');
+    expect(html).toContain('loading="lazy"');
+    expect(html).toContain('sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"');
+    expect(html).toContain("An example video embed.");
   });
 });

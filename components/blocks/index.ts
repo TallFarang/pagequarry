@@ -1,4 +1,5 @@
 export { CtaBlock } from "@/components/blocks/cta-block";
+export { EmbedBlock } from "@/components/blocks/embed-block";
 export { HeroBlock } from "@/components/blocks/hero-block";
 export { MediaCardBlock } from "@/components/blocks/media-card-block";
 export { MediaGridBlock } from "@/components/blocks/media-grid-block";

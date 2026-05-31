@@ -235,6 +235,80 @@ describe("parseDraftSource", () => {
     }
   });
 
+  it("parses and normalizes YouTube embeds from share urls", () => {
+    const source = [
+      "---",
+      "template: guide",
+      "slug: /video",
+      "title: video guide",
+      "description: a page with a video embed",
+      "---",
+      "",
+      '{% hero eyebrow="video" title="Watch the briefing" deck="A neutral video page." /%}',
+      "",
+      '{% sectionCopy title="Before you go" %}',
+      "Watch the briefing before the next step.",
+      "{% /sectionCopy %}",
+      "",
+      '{% embed title="Example video" provider="youtube" src="https://youtu.be/dQw4w9WgXcQ?si=bk_0seWPAck53fJA" aspect="wide" caption="An example video embed." /%}',
+      "",
+      '{% cta title="Ready?" body="Talk to the team." actionHref="/contact" actionLabel="Contact" /%}',
+    ].join("\n");
+
+    const result = parseDraftSource({
+      revisionId: "rev-embed-youtube",
+      source,
+      sourceHash: crypto.createHash("sha256").update(source).digest("hex"),
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.page.blocks[2]).toMatchObject({
+        aspect: "wide",
+        caption: "An example video embed.",
+        provider: "youtube",
+        src: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        title: "Example video",
+        type: "embed",
+      });
+    }
+  });
+
+  it("rejects embed urls that do not match their provider", () => {
+    const source = [
+      "---",
+      "template: guide",
+      "slug: /bad-embed",
+      "title: bad embed",
+      "description: invalid embeds should fail",
+      "---",
+      "",
+      '{% hero eyebrow="embed" title="Bad embed" deck="..." /%}',
+      "",
+      '{% sectionCopy title="Body" %}',
+      "body",
+      "{% /sectionCopy %}",
+      "",
+      '{% embed title="Bad embed" provider="youtube" src="https://calendar.google.com/calendar/embed?src=test" aspect="wide" /%}',
+      "",
+      '{% embed title="Insecure embed" provider="youtube" src="http://www.youtube.com/embed/dQw4w9WgXcQ" /%}',
+      "",
+      '{% cta title="Ready?" body="Talk to the team." actionHref="/contact" actionLabel="Contact" /%}',
+    ].join("\n");
+
+    const result = parseDraftSource({
+      revisionId: "rev-bad-embed",
+      source,
+      sourceHash: crypto.createHash("sha256").update(source).digest("hex"),
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.issues.some((issue) => issue.message.includes("youtube embeds must use"))).toBe(true);
+      expect(result.issues.some((issue) => issue.message.includes("must be an https url"))).toBe(true);
+    }
+  });
+
   it("rejects invalid metadata fields and redirect aliases", () => {
     const source = [
       "---",

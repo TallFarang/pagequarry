@@ -120,6 +120,27 @@ Example:
 {% /mediaGrid %}
 ```
 
+## Embed Blocks
+
+Embeds belong in markdown, but the framework controls which providers and URL shapes are accepted. Use HTTPS embed URLs from approved providers so pages do not need site-specific renderer code for common iframe content.
+
+Supported providers:
+
+- `youtube`
+  accepts canonical `https://www.youtube.com/embed/...` URLs. Pasted YouTube share URLs such as `https://youtu.be/dQw4w9WgXcQ?si=bk_0seWPAck53fJA` are normalized during validation.
+- `googleCalendar`
+  accepts `https://calendar.google.com/calendar/embed...` URLs.
+- `googleMaps`
+  accepts `https://www.google.com/maps/embed...` URLs.
+
+Example:
+
+```md
+{% embed title="Example video" provider="youtube" src="https://www.youtube.com/embed/dQw4w9WgXcQ" aspect="wide" caption="An example video embed." /%}
+```
+
+The optional `aspect` value can be `wide`, `standard`, `square`, or `tall`.
+
 ## Never Touch These Directly
 
 - `content/.state/`

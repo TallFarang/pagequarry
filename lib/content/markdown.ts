@@ -40,6 +40,8 @@ const heroImageModes = ["inline", "background"] as const;
 const imageOverlays = ["none", "soft", "strong"] as const;
 const mediaImagePositions = ["top", "left", "right", "background"] as const;
 const supportingImagePositions = ["top", "left", "right"] as const;
+const embedProviders = ["youtube", "googleCalendar", "googleMaps"] as const;
+const embedAspects = ["wide", "standard", "square", "tall"] as const;
 
 const markdocConfig = {
   tags: {
@@ -48,6 +50,15 @@ const markdocConfig = {
         actionHref: { type: String, required: true },
         actionLabel: { type: String, required: true },
         body: { type: String, required: true },
+        title: { type: String, required: true },
+      },
+    },
+    embed: {
+      attributes: {
+        aspect: { type: String, matches: [...embedAspects] },
+        caption: { type: String },
+        provider: { type: String, matches: [...embedProviders], required: true },
+        src: { type: String, required: true },
         title: { type: String, required: true },
       },
     },
@@ -279,6 +290,40 @@ function normalizeMediaAsset(attrs: Record<string, unknown>) {
   };
 }
 
+function normalizeEmbedSrc(provider: string, rawSrc: string) {
+  const src = rawSrc.trim();
+
+  if (provider !== "youtube") return src;
+
+  try {
+    const parsed = new URL(src);
+
+    if (parsed.protocol !== "https:") return src;
+
+    if (parsed.hostname === "youtu.be") {
+      const videoId = parsed.pathname.split("/").filter(Boolean)[0];
+      return videoId ? `https://www.youtube.com/embed/${videoId}` : src;
+    }
+
+    if (parsed.hostname === "www.youtube.com") {
+      if (parsed.pathname === "/watch") {
+        const videoId = parsed.searchParams.get("v");
+        return videoId ? `https://www.youtube.com/embed/${videoId}` : src;
+      }
+
+      if (parsed.pathname.startsWith("/embed/")) {
+        parsed.search = "";
+        parsed.hash = "";
+        return parsed.toString();
+      }
+    }
+  } catch {
+    return src;
+  }
+
+  return src;
+}
+
 function normalizeMediaCardData(node: MarkdocNode, errors: LintIssue[]) {
   return parseBlock({
     action: normalizeAction(node.attributes, errors, lineOf(node)),
@@ -425,6 +470,22 @@ function normalizeTopLevelTag(node: MarkdocNode, errors: LintIssue[]) {
       }, "hero", errors, lineOf(node));
     case "mediaCard":
       return normalizeMediaCardData(node, errors);
+    case "embed": {
+      const provider = String(node.attributes.provider ?? "").trim();
+
+      return parseBlock({
+        aspect: node.attributes.aspect
+          ? String(node.attributes.aspect).trim()
+          : undefined,
+        caption: node.attributes.caption
+          ? String(node.attributes.caption).trim()
+          : undefined,
+        provider,
+        src: normalizeEmbedSrc(provider, String(node.attributes.src ?? "")),
+        title: String(node.attributes.title ?? "").trim(),
+        type: "embed",
+      }, "embed", errors, lineOf(node));
+    }
     case "mediaGrid": {
       const items = node.children
         .filter((child) => child.type === "tag" && child.tag === "mediaCard")

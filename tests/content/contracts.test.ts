@@ -53,6 +53,15 @@ function mediaGrid(): ContentBlock {
   };
 }
 
+function embed(): ContentBlock {
+  return {
+    type: "embed",
+    title: "video",
+    provider: "youtube",
+    src: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+  };
+}
+
 function processBlock(): ContentBlock {
   return {
     type: "process",
@@ -160,11 +169,11 @@ describe("content contracts", () => {
 
   it("accepts valid block sequences for every template family", () => {
     expect(
-      validateTemplateSequence("home", [hero(), metrics(), sectionCopy(), mediaGrid(), processBlock(), quote(), cta()])
+      validateTemplateSequence("home", [hero(), metrics(), sectionCopy(), mediaGrid(), embed(), processBlock(), quote(), cta()])
     ).toEqual([]);
-    expect(validateTemplateSequence("hub", [hero(), mediaCard(), sectionCopy(), cta()])).toEqual([]);
-    expect(validateTemplateSequence("guide", [hero(), sectionCopy(), mediaGrid(), cta()])).toEqual([]);
-    expect(validateTemplateSequence("caseStudy", [hero(), metrics(), mediaCard(), sectionCopy(), cta()])).toEqual([]);
-    expect(validateTemplateSequence("narrative", [hero(), sectionCopy(), mediaCard(), processBlock(), cta()])).toEqual([]);
+    expect(validateTemplateSequence("hub", [hero(), mediaCard(), sectionCopy(), embed(), cta()])).toEqual([]);
+    expect(validateTemplateSequence("guide", [hero(), sectionCopy(), mediaGrid(), embed(), cta()])).toEqual([]);
+    expect(validateTemplateSequence("caseStudy", [hero(), metrics(), mediaCard(), embed(), sectionCopy(), cta()])).toEqual([]);
+    expect(validateTemplateSequence("narrative", [hero(), sectionCopy(), mediaCard(), embed(), processBlock(), cta()])).toEqual([]);
   });
 });

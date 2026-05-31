@@ -18,6 +18,8 @@ const mediaImagePositionSchema = z.enum(["top", "left", "right", "background"]);
 const supportingImagePositionSchema = z.enum(["top", "left", "right"]);
 const heroImageModeSchema = z.enum(["inline", "background"]);
 const imageOverlaySchema = z.enum(["none", "soft", "strong"]);
+const embedProviderSchema = z.enum(["youtube", "googleCalendar", "googleMaps"]);
+const embedAspectSchema = z.enum(["wide", "standard", "square", "tall"]);
 
 const linkItemSchema: z.ZodType<LinkItem> = actionLinkSchema.extend({
   summary: z.string().min(1).optional(),
@@ -91,6 +93,69 @@ const mediaGridSchema = z.object({
   items: z.array(mediaCardSchema.omit({ type: true })).min(1),
 });
 
+const embedSchema = z.object({
+  type: z.literal("embed"),
+  title: z.string().min(1),
+  provider: embedProviderSchema,
+  src: z.string().min(1),
+  aspect: embedAspectSchema.optional(),
+  caption: z.string().min(1).optional(),
+}).superRefine((value, context) => {
+  let parsed: URL;
+
+  try {
+    parsed = new URL(value.src);
+  } catch {
+    context.addIssue({
+      code: "custom",
+      message: "must be an absolute https url.",
+      path: ["src"],
+    });
+    return;
+  }
+
+  if (parsed.protocol !== "https:") {
+    context.addIssue({
+      code: "custom",
+      message: "must be an https url.",
+      path: ["src"],
+    });
+    return;
+  }
+
+  const rules = {
+    googleCalendar: {
+      message:
+        "googleCalendar embeds must use https://calendar.google.com/calendar/embed.",
+      valid:
+        parsed.hostname === "calendar.google.com" &&
+        parsed.pathname.startsWith("/calendar/embed"),
+    },
+    googleMaps: {
+      message: "googleMaps embeds must use https://www.google.com/maps/embed.",
+      valid:
+        parsed.hostname === "www.google.com" &&
+        parsed.pathname.startsWith("/maps/embed"),
+    },
+    youtube: {
+      message: "youtube embeds must use https://www.youtube.com/embed/<video-id>.",
+      valid:
+        parsed.hostname === "www.youtube.com" &&
+        parsed.pathname.startsWith("/embed/") &&
+        parsed.pathname.split("/").filter(Boolean).length >= 2,
+    },
+  } as const;
+
+  const rule = rules[value.provider];
+  if (!rule.valid) {
+    context.addIssue({
+      code: "custom",
+      message: rule.message,
+      path: ["src"],
+    });
+  }
+});
+
 const metricsSchema = z.object({
   type: z.literal("metrics"),
   items: z
@@ -136,6 +201,7 @@ export const contentBlockSchema: z.ZodType<ContentBlock> = z.discriminatedUnion(
   [
     heroSchema,
     sectionCopySchema,
+    embedSchema,
     mediaCardSchema,
     mediaGridSchema,
     metricsSchema,
@@ -326,6 +392,11 @@ export const blockDocs = {
     description: "closing call to action with one button",
     syntax:
       "{% cta title=\"review the publishing flow\" body=\"...\" actionHref=\"/contact\" actionLabel=\"contact\" /%}",
+  },
+  embed: {
+    description: "safe iframe embed from an approved provider",
+    syntax:
+      "{% embed title=\"Example video\" provider=\"youtube\" src=\"https://www.youtube.com/embed/dQw4w9WgXcQ\" aspect=\"wide\" caption=\"An example video embed.\" /%}",
   },
   hero: {
     description: "lead hero with optional aside, action button, and image treatment",
